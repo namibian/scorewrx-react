@@ -2,6 +2,13 @@ import { Tournament } from '@/types'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { 
   Trophy, 
   Calendar, 
@@ -11,7 +18,8 @@ import {
   Edit,
   Trash2,
   QrCode,
-  FileDown
+  FileDown,
+  UsersRound
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { canExportTournament } from '@/lib/export-utils'
@@ -77,9 +85,55 @@ export function TournamentCard({
             </div>
           </div>
           {!isPastTournament && (
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreVertical className="w-4 h-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => onEdit(tournament)}>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Tournament
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem 
+                  onClick={() => onManageGroups(tournament)}
+                  disabled={tournament.useOnlineRegistration && tournament.state !== 'Active'}
+                >
+                  <UsersRound className="w-4 h-4 mr-2" />
+                  Manage Groups
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem 
+                  onClick={() => onShowCode(tournament)}
+                  disabled={!hasGroups}
+                >
+                  <QrCode className="w-4 h-4 mr-2" />
+                  Show Code & Link
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem 
+                  onClick={() => onExport(tournament)}
+                  disabled={!exportEnabled}
+                >
+                  <FileDown className="w-4 h-4 mr-2" />
+                  Export Data
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem 
+                  onClick={() => onDelete(tournament)}
+                  className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </CardHeader>
