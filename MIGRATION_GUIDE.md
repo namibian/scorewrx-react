@@ -44,48 +44,48 @@ This guide provides step-by-step instructions for migrating the ScoreWrx applica
 2. Test Firebase connection
 3. Verify PWA installation works
 
-### Week 2: Business Logic Migration
+### Week 2: Business Logic Migration ✅ COMPLETED
 
 **Goal**: Port all game calculation logic to pure TypeScript functions
 
-**Files to Create**:
+**Files Created**:
 
-1. `src/lib/game-logic/stroke-calculation.ts`
+1. `src/lib/game-logic/stroke-calculation.ts` ✅
    - Port from: `src/composables/useStrokeCalculation.js`
    - Functions: All stroke calculation logic
-   - Status: Not started
+   - Status: Complete with 17 passing tests
 
-2. `src/lib/game-logic/sixes-match.ts`
+2. `src/lib/game-logic/sixes-match.ts` ✅
    - Port from: `src/composables/useSixesMatch.js`
    - Functions: Team formation, point calculation
-   - Status: Not started
+   - Status: Complete with 10 passing tests
 
-3. `src/lib/game-logic/nines-match.ts`
+3. `src/lib/game-logic/nines-match.ts` ✅
    - Port from: `src/composables/useNinesMatch.js`
-   - Functions: Point distribution (3-2-0, 2-2-1, 1-1-1)
-   - Status: Not started
+   - Functions: Point distribution (5-3-1, 4-4-1, 3-3-3)
+   - Status: Complete with 5 passing tests
 
-4. `src/lib/game-logic/nassau-match.ts`
+4. `src/lib/game-logic/nassau-match.ts` ✅
    - Port from: `src/composables/useNassauMatch.js`
    - Functions: Match play calculations
-   - Status: Not started
+   - Status: Complete with 5 passing tests
 
-5. `src/lib/game-logic/dots-game.ts`
-   - Port from: Dots logic in composables
-   - Functions: Dots calculation, greenie/sandy tracking
-   - Status: Not started
+5. `src/lib/game-logic/dots-game.ts` ✅
+   - Port from: Dots logic in composables/components
+   - Functions: Dots calculation, greenie/sandy tracking, carry-over logic
+   - Status: Complete with 18 passing tests
 
-6. `src/lib/game-logic/skins-calculation.ts`
-   - Port from: Skins logic in stores/gameResults.js
+6. `src/lib/game-logic/skins-calculation.ts` ✅
+   - Port from: Skins logic in components/scorecard/SkinsPanel.vue
    - Functions: Skins winners, pot calculation, residual distribution
-   - Status: Not started
+   - Status: Complete with 16 passing tests
 
-**Testing**:
-- Create unit tests for each function
-- Verify calculations match Vue version exactly
-- Test edge cases (ties, DNF, etc.)
+**Testing**: ✅
+- ✅ Created unit tests for all functions (71 tests total)
+- ✅ All calculations verified to match Vue version
+- ✅ Edge cases tested (ties, DNF, strokes, carry-overs)
 
-**Checkpoint**: All business logic tests passing
+**Checkpoint**: ✅ All business logic tests passing (71/71)
 
 ### Week 3: State Management
 
@@ -404,17 +404,17 @@ useEffect(() => {
 
 Update this section weekly:
 
-- **Week 1**: ✅ Complete
-- **Week 2**: ⏳ In Progress
-- **Week 3**: ⏸️ Not Started
-- **Week 4**: ⏸️ Not Started
-- **Week 5**: ⏸️ Not Started
-- **Week 6**: ⏸️ Not Started
-- **Week 7**: ⏸️ Not Started
-- **Week 8**: ⏸️ Not Started
-- **Week 9**: ⏸️ Not Started
-- **Week 10**: ⏸️ Not Started
-- **Week 11**: ⏸️ Not Started
+- **Week 1**: ✅ Complete (Foundation setup)
+- **Week 2**: ✅ Complete (Business logic ported - 71 tests passing)
+- **Week 3**: ⏸️ Not Started (State Management)
+- **Week 4**: ⏸️ Not Started (Admin Components Part 1)
+- **Week 5**: ⏸️ Not Started (Admin Components Part 2)
+- **Week 6**: ⏸️ Not Started (Mobile Scoring Part 1)
+- **Week 7**: ⏸️ Not Started (Mobile Scoring Part 2)
+- **Week 8**: ⏸️ Not Started (Routing & Layouts)
+- **Week 9**: ⏸️ Not Started (Testing & Bug Fixes)
+- **Week 10**: ⏸️ Not Started (Beta Deployment)
+- **Week 11**: ⏸️ Not Started (Production Deployment)
 
 ## 🆘 Troubleshooting
 
@@ -469,5 +469,5 @@ Migration is complete when:
 ---
 
 **Last Updated**: December 1, 2024
-**Migration Status**: Week 1 Complete
+**Migration Status**: Week 2 Complete - Business Logic Ported ✅
 
