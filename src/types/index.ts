@@ -218,15 +218,30 @@ export interface Competitions {
   longDrive?: LongDriveCompetition
 }
 
+export interface ShotgunStartConfig {
+  enabled: boolean
+  startTime: string
+}
+
 export interface Tournament {
   id: string
   name: string
   date: Date | string
-  courseId: string
+  course: string // Course ID
+  courseId?: string // Alias for backward compatibility
   affiliation: string
-  shotgunStart: boolean
-  shotgunStartTime?: string
+  
+  // Shotgun start configuration
+  shotgunStart: boolean | ShotgunStartConfig // Support both formats
+  shotgunStartTime?: string // Deprecated - use shotgunStart.startTime
   teeTimeInterval?: number
+  defaultStartingTee?: 1 | 10
+  
+  // Tournament configuration
+  playType?: 'Stroke Play' | 'Match Play'
+  scoringFormat?: 'Individual' | 'Team'
+  handicapFormat?: 'Custom' | 'Standard'
+  
   state: 'Created' | 'Open' | 'Active' | 'Archived'
   code: string
   createdBy: string

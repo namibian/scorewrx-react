@@ -22,9 +22,10 @@ export default function TournamentsPage() {
     fetchTournamentGroups
   } = useTournamentsStore()
   
-  const { getCourseById, fetchCourseById } = useCoursesStore()
+  const { courses, getCourseById, fetchCourseById, fetchCourses } = useCoursesStore()
   
   const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [editingTournament, setEditingTournament] = useState<Tournament | null>(null)
   const [exporting, setExporting] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; tournament: Tournament | null }>({ 
     open: false, 
@@ -34,7 +35,8 @@ export default function TournamentsPage() {
 
   useEffect(() => {
     fetchTournaments()
-  }, [fetchTournaments])
+    fetchCourses()
+  }, [fetchTournaments, fetchCourses])
 
   // Automatically archive past active tournaments
   useEffect(() => {
@@ -80,8 +82,13 @@ export default function TournamentsPage() {
   })
 
   const handleEdit = (tournament: Tournament) => {
-    console.log('Edit tournament:', tournament)
-    // TODO: Open edit dialog
+    setEditingTournament(tournament)
+    setShowCreateDialog(true)
+  }
+
+  const handleCloseDialog = () => {
+    setShowCreateDialog(false)
+    setEditingTournament(null)
   }
 
   const handleManageGroups = (tournament: Tournament) => {
@@ -225,7 +232,11 @@ export default function TournamentsPage() {
 
   return (
     <>
-      <CreateTournamentDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
+      <CreateTournamentDialog 
+        open={showCreateDialog} 
+        onOpenChange={handleCloseDialog}
+        editingTournament={editingTournament}
+      />
       
       {/* Delete Tournament Confirmation */}
       <ConfirmDialog

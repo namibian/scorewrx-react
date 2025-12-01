@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { AlertCircle, Mail, Lock, Eye, EyeOff, User, Building2, Trophy, Smartphone, BarChart } from 'lucide-react'
 import { doc, setDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase/config'
+import { Logo } from '@/components/common/logo'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -237,8 +238,8 @@ export default function RegisterPage() {
           </div>
 
           <div className="relative z-10">
-            <div className="w-20 h-20 bg-white/20 backdrop-blur-lg rounded-2xl flex items-center justify-center mb-8">
-              <Trophy className="w-10 h-10 text-white" />
+            <div className="mb-8">
+              <Logo size={100} className="drop-shadow-xl" />
             </div>
             
             <h2 className="text-5xl font-bold text-white mb-4 leading-tight">

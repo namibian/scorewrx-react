@@ -237,13 +237,19 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
       const q = query(tournamentsRef, where('affiliation', '==', userAffiliation))
       const snapshot = await getDocs(q)
       
-      const tournamentDocs = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        date: doc.data().date,
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        lastUpdated: doc.data().lastUpdated?.toDate() || new Date()
-      })) as Tournament[]
+      const tournamentDocs = snapshot.docs.map((doc) => {
+        const data = doc.data()
+        return {
+          id: doc.id,
+          ...data,
+          // Normalize course field for backward compatibility
+          course: data.course || data.courseId,
+          courseId: data.course || data.courseId,
+          date: data.date,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          lastUpdated: data.lastUpdated?.toDate() || new Date()
+        }
+      }) as Tournament[]
 
       set({ tournaments: tournamentDocs, loading: false })
     } catch (err: any) {
@@ -269,6 +275,9 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
       const tournamentData: Tournament = {
         id: tournamentDoc.id,
         ...data,
+        // Normalize course field for backward compatibility
+        course: data.course || data.courseId,
+        courseId: data.course || data.courseId,
         date: data.date,
         createdAt: data.createdAt?.toDate() || new Date(),
         lastUpdated: data.lastUpdated?.toDate() || new Date()
@@ -368,20 +377,64 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
       const code = await generateUniqueTournamentCode()
       const authStore = useAuthStore.getState()
 
-      const tournamentRef = doc(collection(db, 'tournaments'))
-      await setDoc(tournamentRef, {
-        ...tournamentData,
+      // Handle date conversion - if it's a string (from date input), use it directly
+      // Firestore will handle the string format
+      const dateValue = typeof tournamentData.date === 'string' 
+        ? tournamentData.date 
+        : tournamentData.date instanceof Date 
+          ? tournamentData.date.toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0]
+
+      // Build the tournament document, excluding undefined fields
+      const tournamentDoc: any = {
+        name: tournamentData.name,
+        date: dateValue,
+        course: tournamentData.courseId,
         code,
         affiliation: authStore.userProfile?.affiliation,
         createdAt: new Date(),
         createdBy: authStore.user?.uid || null,
         lastUpdated: new Date(),
         state: 'Created',
+        
+        // Registration settings
         useOnlineRegistration: tournamentData.useOnlineRegistration || false,
         maxRegistrations: tournamentData.maxRegistrations || null,
         registeredPlayers: [],
-        waitingList: []
-      })
+        waitingList: [],
+        
+        // Tournament configuration
+        shotgunStart: tournamentData.shotgunStart ? {
+          enabled: true,
+          startTime: tournamentData.shotgunStartTime || '08:00'
+        } : {
+          enabled: false,
+          startTime: '08:00'
+        }
+      }
+
+      // Only add defaultStartingTee if shotgun start is disabled
+      if (!tournamentData.shotgunStart) {
+        tournamentDoc.defaultStartingTee = 1
+      }
+
+      // Only add competitions if they exist and have at least one enabled competition
+      if (tournamentData.competitions && Object.keys(tournamentData.competitions).length > 0) {
+        tournamentDoc.competitions = tournamentData.competitions
+      } else {
+        // Default: skins enabled
+        tournamentDoc.competitions = {
+          skins: {
+            enabled: true,
+            scratchBuyIn: 5.00,
+            handicapBuyIn: 5.00,
+            useHalfStrokeOnPar3: true
+          }
+        }
+      }
+
+      const tournamentRef = doc(collection(db, 'tournaments'))
+      await setDoc(tournamentRef, tournamentDoc)
 
       await get().fetchTournaments()
       return tournamentRef.id
