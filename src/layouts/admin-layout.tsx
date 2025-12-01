@@ -192,7 +192,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </header>
 
       {/* Main Content Area */}
-      <main className="container py-6 px-4">
+      <main className="container max-w-full py-6 px-4">
         {children}
       </main>
 
