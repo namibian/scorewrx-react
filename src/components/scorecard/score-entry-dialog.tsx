@@ -40,7 +40,6 @@ export function ScoreEntryDialog({
   players,
   course,
   localPlayerScores,
-  isVerifier,
   onSaveScores,
   onNavigate,
 }: ScoreEntryDialogProps) {
@@ -64,21 +63,23 @@ export function ScoreEntryDialog({
 
   // Initialize scores when dialog opens
   useEffect(() => {
-    if (open) {
-      const initialScores = new Map()
-      players.forEach((player) => {
-        const savedPlayer = localPlayerScores.get(player.id)
-        initialScores.set(player.id, {
-          score: savedPlayer?.score?.[hole - 1] ?? null,
-          dots: savedPlayer?.dots?.[hole - 1] ?? 0,
-          greenie: savedPlayer?.greenies?.includes(hole) ?? false,
-          sandy: savedPlayer?.sandies?.includes(hole) ?? false,
-          dnf: savedPlayer?.dnf?.[hole - 1] ?? false,
-        })
+    if (!open) return
+
+    // Initialize scores from saved player data
+    const initialScores = new Map()
+    players.forEach((player) => {
+      const savedPlayer = localPlayerScores.get(player.id)
+      initialScores.set(player.id, {
+        score: savedPlayer?.score?.[hole - 1] ?? null,
+        dots: savedPlayer?.dots?.[hole - 1] ?? 0,
+        greenie: savedPlayer?.greenies?.includes(hole) ?? false,
+        sandy: savedPlayer?.sandies?.includes(hole) ?? false,
+        dnf: savedPlayer?.dnf?.[hole - 1] ?? false,
       })
-      setPlayerScores(initialScores)
-      setCurrentPlayerIndex(0)
-    }
+    })
+
+    setPlayerScores(initialScores)
+    setCurrentPlayerIndex(0)
   }, [open, hole, players, localPlayerScores])
 
   const currentScoreData = playerScores.get(currentPlayer?.id)
@@ -113,7 +114,13 @@ export function ScoreEntryDialog({
   const handleToggle = (field: 'greenie' | 'sandy' | 'dnf') => {
     if (!currentPlayer || !currentScoreData) return
 
-    const updates: any = { ...currentScoreData }
+    const updates: {
+      score: number | null
+      dots: number
+      greenie: boolean
+      sandy: boolean
+      dnf: boolean
+    } = { ...currentScoreData }
 
     if (field === 'dnf') {
       updates.dnf = !currentScoreData.dnf

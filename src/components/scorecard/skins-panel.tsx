@@ -29,22 +29,15 @@ export function SkinsPanel({
 }: SkinsPanelProps) {
   const skinsConfig = tournament.competitions?.skins
 
-  if (!skinsConfig?.enabled) {
-    return (
-      <Card>
-        <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">
-            Skins competition not enabled
-          </p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  // Calculate skins for both pools
+  // Calculate skins for both pools - MUST be before early return
   const { scratch: scratchSkins, handicap: handicapSkins } = useMemo(
-    () => calculateAllSkins(tournament, course, allPlayers),
-    [tournament, course, allPlayers]
+    () => {
+      if (!skinsConfig?.enabled) {
+        return { scratch: {}, handicap: {} }
+      }
+      return calculateAllSkins(tournament, course, allPlayers)
+    },
+    [tournament, course, allPlayers, skinsConfig]
   )
 
   // Get participants for each pool
@@ -87,29 +80,31 @@ export function SkinsPanel({
   // Calculate pot sizes
   const scratchPotSize = useMemo(
     () =>
-      calculatePotSize(
-        scratchParticipants,
-        skinsConfig.scratchBuyIn ?? 5,
-        skinsConfig.manualScratchPot
-      ),
+      skinsConfig?.enabled
+        ? calculatePotSize(
+            scratchParticipants,
+            skinsConfig.scratchBuyIn ?? 5,
+            skinsConfig.manualScratchPot
+          )
+        : 0,
     [
+      skinsConfig,
       scratchParticipants,
-      skinsConfig.scratchBuyIn,
-      skinsConfig.manualScratchPot,
     ]
   )
 
   const handicapPotSize = useMemo(
     () =>
-      calculatePotSize(
-        handicapParticipants,
-        skinsConfig.handicapBuyIn ?? 5,
-        skinsConfig.manualHandicapPot
-      ),
+      skinsConfig?.enabled
+        ? calculatePotSize(
+            handicapParticipants,
+            skinsConfig.handicapBuyIn ?? 5,
+            skinsConfig.manualHandicapPot
+          )
+        : 0,
     [
+      skinsConfig,
       handicapParticipants,
-      skinsConfig.handicapBuyIn,
-      skinsConfig.manualHandicapPot,
     ]
   )
 
@@ -123,6 +118,19 @@ export function SkinsPanel({
     () => calculatePlayerEarnings(handicapSkins, handicapPotSize),
     [handicapSkins, handicapPotSize]
   )
+
+  // Early return AFTER all hooks
+  if (!skinsConfig?.enabled) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <p className="text-center text-muted-foreground">
+            Skins competition not enabled
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   // Helper to render a skins pool
   const renderSkinsPool = (
@@ -206,7 +214,7 @@ export function SkinsPanel({
                 View hole-by-hole breakdown
               </summary>
               <div className="mt-2 space-y-1">
-                {Array.from({ length: 18 }, (_, idx) => {
+                {Array.from({ length: 18 }, (_unused, idx) => {
                   const hole = idx + 1
                   const winner = Object.entries(poolSkins).find(
                     ([_, skins]) =>

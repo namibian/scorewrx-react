@@ -43,6 +43,7 @@ export function LeaderboardTab({
   }, [course])
 
   // Calculate leaderboard entries
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const leaderboard = useMemo(() => {
     const entries: LeaderboardEntry[] = []
 

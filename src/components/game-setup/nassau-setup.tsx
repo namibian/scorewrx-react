@@ -27,7 +27,6 @@ interface NassauSetupProps {
 
 export function NassauSetup({
   value,
-  players,
   saving = false,
   disabled = false,
   onChange,

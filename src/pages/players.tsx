@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
   Users, 
-  Plus, 
   Loader2, 
   Edit, 
   Trash2, 
@@ -25,7 +24,7 @@ import {
 
 export default function PlayersPage() {
   const { players, loading, error, fetchPlayers, deletePlayer } = usePlayersStore()
-  const [showCreateDialog, setShowCreateDialog] = useState(false)
+  // const [showCreateDialog, setShowCreateDialog] = useState(false) // TODO: Implement create dialog
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([])
 
   useEffect(() => {
@@ -111,7 +110,7 @@ export default function PlayersPage() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button 
               size="lg"
-              onClick={() => setShowCreateDialog(true)}
+              onClick={() => alert('Create player dialog coming soon')}
               className="bg-gradient-to-r from-blue-600 to-blue-700"
             >
               <UserPlus className="w-5 h-5 mr-2" />
@@ -157,7 +156,7 @@ export default function PlayersPage() {
                 Import
               </Button>
               <Button 
-                onClick={() => setShowCreateDialog(true)}
+                onClick={() => alert('Create player dialog coming soon')}
                 className="bg-gradient-to-r from-blue-600 to-blue-700"
               >
                 <UserPlus className="w-4 h-4 mr-2" />

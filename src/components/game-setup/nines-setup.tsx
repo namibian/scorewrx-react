@@ -19,7 +19,7 @@ export function NinesSetup({
   disabled = false,
   onChange,
 }: NinesSetupProps) {
-  const updateField = (field: keyof NinesSettings, fieldValue: any) => {
+  const updateField = (field: keyof NinesSettings, fieldValue: string | number | boolean) => {
     if (disabled) return
 
     // For amount fields, ensure we have a valid positive number

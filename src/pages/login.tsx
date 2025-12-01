@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle, Mail, Lock, Eye, EyeOff, Trophy, GolfCourse, Users, BarChart } from 'lucide-react'
+import { AlertCircle, Mail, Lock, Eye, EyeOff, Trophy, MapPin, Users, BarChart } from 'lucide-react'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -18,7 +18,7 @@ export default function LoginPage() {
 
   const features = [
     { icon: Trophy, title: 'Manage Tournaments' },
-    { icon: GolfCourse, title: 'Track Courses' },
+    { icon: MapPin, title: 'Track Courses' },
     { icon: Users, title: 'Organize Players' },
     { icon: BarChart, title: 'View Analytics' }
   ]

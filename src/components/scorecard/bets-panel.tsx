@@ -12,10 +12,7 @@ import {
   calculatePoints as calculateNinesPoints,
   type NinesPointResult,
 } from '@/lib/game-logic/nines-match'
-import {
-  getMatchStandings,
-  type NassauMatchStandings,
-} from '@/lib/game-logic/nassau-match'
+import { getMatchStandings } from '@/lib/game-logic/nassau-match'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface BetsPanelProps {

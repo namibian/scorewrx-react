@@ -91,7 +91,7 @@ export function getGameHoleRange(
   // Convert game number and starting tee to hole range
   const gameHoles = 6
   const startOffset = (gameNumber - 1) * gameHoles
-  let startHole = ((startingTee - 1 + startOffset) % 18) + 1
+  const startHole = ((startingTee - 1 + startOffset) % 18) + 1
   let endHole = startHole + gameHoles - 1
 
   // Handle wrap around for holes > 18

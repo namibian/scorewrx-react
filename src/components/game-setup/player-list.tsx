@@ -13,7 +13,7 @@ interface PlayerListProps {
   players: Player[]
   skinsPoolOptions: string[]
   disabled?: boolean
-  onUpdatePlayer: (playerId: string, field: string, value: any) => void
+  onUpdatePlayer: (playerId: string, field: string, value: string) => void
 }
 
 export function PlayerList({

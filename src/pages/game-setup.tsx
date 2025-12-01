@@ -4,10 +4,6 @@ import { useTournamentsStore } from '@/stores/tournaments-store'
 import { useCoursesStore } from '@/stores/courses-store'
 import {
   Player,
-  SixesSettings,
-  NinesSettings,
-  NassauSettings,
-  DotsSettings,
   Course,
 } from '@/types'
 import {

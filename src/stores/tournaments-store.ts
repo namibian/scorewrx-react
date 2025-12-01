@@ -825,7 +825,7 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
         }
 
         const groupData = groupDoc.data()
-        let players = groupData.players || []
+        const players = groupData.players || []
 
         const updatedPlayers = players.map((player: any) => {
           const newScoreData = scores[player.id]
@@ -1370,7 +1370,7 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
         }
 
         const groupData = groupDoc.data()
-        let players = groupData.players || []
+        const players = groupData.players || []
 
         const updatedPlayers = players.map((player: any) => {
           const verifierData = verifierScores[player.id]
@@ -1605,7 +1605,7 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
         }
 
         const groupData = groupDoc.data()
-        let players = groupData.players || []
+        const players = groupData.players || []
 
         const updatedPlayers = players.map((player: any) => {
           const scorerData = scorerScores[player.id]

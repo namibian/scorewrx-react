@@ -5,7 +5,7 @@ import { useCoursesStore } from '@/stores/courses-store'
 import { usePlayersStore } from '@/stores/players-store'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Trophy, GolfCourse, Users, Plus, LogOut } from 'lucide-react'
+import { Trophy, MapPin, Users, LogOut } from 'lucide-react'
 import { useEffect } from 'react'
 
 export default function Dashboard() {
@@ -43,7 +43,7 @@ export default function Dashboard() {
       title: 'Courses',
       value: courses.length,
       description: 'Golf courses',
-      icon: GolfCourse,
+      icon: MapPin,
       color: 'from-emerald-500 to-green-600',
       action: () => navigate('/courses')
     },
@@ -139,7 +139,7 @@ export default function Dashboard() {
                 className="h-auto py-4 flex-col space-y-2"
                 onClick={() => navigate('/courses')}
               >
-                <GolfCourse className="w-8 h-8 text-green-600" />
+                <MapPin className="w-8 h-8 text-green-600" />
                 <span className="font-semibold">Add Course</span>
                 <span className="text-xs text-slate-500">Add a golf course</span>
               </Button>

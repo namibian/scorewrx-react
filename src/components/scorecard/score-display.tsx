@@ -1,4 +1,3 @@
-import { Player } from '@/types'
 import { cn } from '@/lib/utils'
 
 interface ScoreDisplayProps {
@@ -6,7 +5,6 @@ interface ScoreDisplayProps {
   dots: number
   dnf: boolean
   par: number
-  cellSize?: number
   sandy?: boolean
   greenie?: boolean
 }
@@ -16,7 +14,6 @@ export function ScoreDisplay({
   dots,
   dnf,
   par,
-  cellSize = 40,
   sandy = false,
   greenie = false,
 }: ScoreDisplayProps) {

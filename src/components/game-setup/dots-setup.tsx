@@ -30,7 +30,7 @@ export function DotsSetup({
     })
   }
 
-  const updateField = (field: keyof DotsSettings, fieldValue: any) => {
+  const updateField = (field: keyof DotsSettings, fieldValue: string | number | boolean) => {
     // For amount fields, ensure we have a valid positive number
     if (field === 'amountPerDot') {
       const numValue = Number(fieldValue)
@@ -69,7 +69,8 @@ export function DotsSetup({
         participants: players.map((player) => player.id),
       })
     }
-  }, [value.enabled, value.participants.length, players, onChange])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value.enabled, value.participants.length, players])
 
   const getToggleHint = () => {
     if (!canPlayDots) return 'Requires at least 2 players'

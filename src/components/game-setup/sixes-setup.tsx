@@ -3,7 +3,6 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { DEFAULT_SIXES_SETTINGS } from '@/lib/constants/game-defaults'
 
 interface SixesSetupProps {
   value: SixesSettings
@@ -16,7 +15,6 @@ interface SixesSetupProps {
 
 export function SixesSetup({
   value,
-  players,
   courseData,
   saving = false,
   disabled = false,
@@ -24,7 +22,7 @@ export function SixesSetup({
 }: SixesSetupProps) {
   const hasCourseData = courseData?.teeboxes?.[0]?.holes?.length === 18
 
-  const updateField = (field: keyof SixesSettings, fieldValue: any) => {
+  const updateField = (field: keyof SixesSettings, fieldValue: string | number | boolean) => {
     if (disabled) return
 
     // For amount fields, ensure we have a valid positive number
