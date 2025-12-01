@@ -95,13 +95,18 @@ export interface NassauSettings {
   matchType: 'all' | 'frontback' | 'overall'
 }
 
+export interface DotsParticipant {
+  playerId: string
+  selected: boolean
+}
+
 export interface DotsSettings {
   enabled: boolean
   amountPerDot: number
   useDifferentialHandicap: boolean
   trackGreenies: boolean
   trackSandies: boolean
-  participants: string[]
+  participants: string[]  // Array of player IDs who are selected
 }
 
 export interface GameSettings {
