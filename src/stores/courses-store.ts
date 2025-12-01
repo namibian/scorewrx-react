@@ -36,28 +36,21 @@ export const useCoursesStore = create<CoursesState>((set, get) => ({
 
   // Get all courses
   fetchCourses: async () => {
-    console.log('DEBUG: fetchCourses called')
     set({ loading: true, error: null })
     try {
       const coursesRef = collection(db, 'courses')
       const authStore = useAuthStore.getState()
       const userAffiliation = authStore.userProfile?.affiliation
 
-      console.log('DEBUG: User affiliation:', userAffiliation)
-      console.log('DEBUG: User profile:', authStore.userProfile)
-
       if (!userAffiliation) {
-        console.warn('User affiliation not found in profile:', authStore.userProfile)
+        console.warn('User affiliation not found. Please check your user profile.')
         set({ error: 'User affiliation not found' })
         return
       }
 
       // Get only courses with matching affiliation
       const q = query(coursesRef, where('affiliation', '==', userAffiliation))
-      console.log('DEBUG: Executing query for affiliation:', userAffiliation)
-
       const snapshot = await getDocs(q)
-      console.log('DEBUG: Query returned', snapshot.docs.length, 'courses')
 
       const coursesData = snapshot.docs.map((doc) => {
         const data = doc.data()
@@ -72,14 +65,12 @@ export const useCoursesStore = create<CoursesState>((set, get) => ({
           lastUpdated: data.lastUpdated?.toDate() || new Date(),
           teeboxes: data.teeboxes || []
         }
-        console.log('DEBUG: Course loaded:', courseData.name, 'ID:', courseData.id)
         return courseData
       })
 
       set({ courses: coursesData })
-      console.log('DEBUG: All courses loaded successfully:', coursesData.length)
     } catch (err: any) {
-      console.error('ERROR: fetchCourses failed:', err)
+      console.error('Error fetching courses:', err)
       set({ error: err.message })
       throw err
     } finally {
@@ -170,14 +161,9 @@ export const useCoursesStore = create<CoursesState>((set, get) => ({
 
   // Update course (requires authentication)
   updateCourse: async (id: string, courseData: Partial<Course>) => {
-    console.log('DEBUG: updateCourse called with ID:', id)
-    console.log('DEBUG: courseData:', courseData)
-
     set({ loading: true, error: null })
     try {
       const authStore = useAuthStore.getState()
-      console.log('DEBUG: authStore.user:', authStore.user)
-      console.log('DEBUG: authStore.userProfile:', authStore.userProfile)
 
       if (!authStore.user) {
         throw new Error('Authentication required')
@@ -188,7 +174,6 @@ export const useCoursesStore = create<CoursesState>((set, get) => ({
       }
 
       const docRef = doc(db, 'courses', id)
-      console.log('DEBUG: Document reference created for ID:', id)
 
       const updateData = {
         ...courseData,
@@ -196,22 +181,10 @@ export const useCoursesStore = create<CoursesState>((set, get) => ({
         lastUpdated: new Date()
       }
 
-      console.log('DEBUG: Final update data:', updateData)
-
       await updateDoc(docRef, updateData)
-      console.log('DEBUG: Document updated successfully')
-
       await get().fetchCourses()
-      console.log('DEBUG: Courses refetched successfully')
     } catch (err: any) {
-      console.error('ERROR: updateCourse failed:', err)
-      console.error('ERROR: Error details:', {
-        message: err.message,
-        code: err.code,
-        stack: err.stack,
-        id,
-        courseData
-      })
+      console.error('Error updating course:', err)
       set({ error: err.message })
       throw err
     } finally {

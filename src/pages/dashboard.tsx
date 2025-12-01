@@ -5,12 +5,12 @@ import { useCoursesStore } from '@/stores/courses-store'
 import { usePlayersStore } from '@/stores/players-store'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Trophy, MapPin, Users, LogOut } from 'lucide-react'
+import { Trophy, MapPin, Users } from 'lucide-react'
 import { useEffect } from 'react'
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const { userProfile, logout } = useAuthStore()
+  const { userProfile } = useAuthStore()
   const { tournaments, fetchTournaments } = useTournamentsStore()
   const { courses, fetchCourses } = useCoursesStore()
   const { players, fetchPlayers } = usePlayersStore()
@@ -20,15 +20,6 @@ export default function Dashboard() {
     fetchCourses()
     fetchPlayers()
   }, [fetchTournaments, fetchCourses, fetchPlayers])
-
-  const handleLogout = async () => {
-    try {
-      await logout()
-      navigate('/login')
-    } catch (err) {
-      console.error('Failed to logout:', err)
-    }
-  }
 
   const stats = [
     {
@@ -58,32 +49,9 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
-                <Trophy className="w-6 h-6 text-white" />
-              </div>
+    <div className="space-y-8">
+      {/* Welcome Section */}
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">ScoreWRX</h1>
-                <p className="text-sm text-slate-600">{userProfile?.affiliation}</p>
-              </div>
-            </div>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
           <h2 className="text-3xl font-bold text-slate-900 mb-2">
             Welcome back, {userProfile?.firstName || 'Admin'}!
           </h2>
@@ -93,7 +61,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {stats.map((stat, idx) => (
             <Card 
               key={idx} 
@@ -159,7 +127,7 @@ export default function Dashboard() {
 
         {/* Recent Activity */}
         {tournaments.length > 0 && (
-          <Card className="mt-8">
+        <Card>
             <CardHeader>
               <CardTitle>Recent Tournaments</CardTitle>
               <CardDescription>Your latest tournament activity</CardDescription>
@@ -197,7 +165,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
-      </div>
     </div>
   )
 }

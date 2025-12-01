@@ -131,10 +131,9 @@ export default function PlayersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="space-y-8">
         {/* Page Header */}
-        <div className="mb-8">
+      <div>
           <div className="flex items-center justify-between mb-2">
             <div>
               <h1 className="text-3xl font-bold text-slate-900">Players</h1>
@@ -268,7 +267,6 @@ export default function PlayersPage() {
             </Table>
           </CardContent>
         </Card>
-      </div>
     </div>
   )
 }

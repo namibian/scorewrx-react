@@ -229,13 +229,14 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
       const userAffiliation = authStore.userProfile?.affiliation
 
       if (!userAffiliation) {
-        console.warn('User affiliation not found in profile:', authStore.userProfile)
-        set({ error: 'User affiliation not found' })
+        console.warn('User affiliation not found. Please check your user profile.')
+        set({ tournaments: [], loading: false, error: 'User affiliation not found. Please check your user profile.' })
         return
       }
 
       const q = query(tournamentsRef, where('affiliation', '==', userAffiliation))
       const snapshot = await getDocs(q)
+      
       const tournamentDocs = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -244,13 +245,11 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
         lastUpdated: doc.data().lastUpdated?.toDate() || new Date()
       })) as Tournament[]
 
-      set({ tournaments: tournamentDocs })
+      set({ tournaments: tournamentDocs, loading: false })
     } catch (err: any) {
       console.error('Error fetching tournaments:', err)
-      set({ error: err.message })
+      set({ error: err.message, loading: false })
       throw err
-    } finally {
-      set({ loading: false })
     }
   },
 

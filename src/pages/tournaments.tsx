@@ -146,10 +146,9 @@ export default function TournamentsPage() {
     <>
       <CreateTournamentDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
       
-      <div className="min-h-screen bg-slate-50 p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="space-y-8">
         {/* Page Header */}
-        <div className="mb-8">
+        <div>
           <div className="flex items-center justify-between mb-2">
             <div>
               <h1 className="text-3xl font-bold text-slate-900">Tournaments</h1>
@@ -166,7 +165,7 @@ export default function TournamentsPage() {
         </div>
 
         {/* Upcoming Tournaments */}
-        <div className="mb-12">
+        <div>
           <h2 className="text-xl font-semibold text-slate-900 mb-4">Upcoming Tournaments</h2>
           {upcomingTournaments.length === 0 ? (
             <div className="bg-white rounded-lg p-8 text-center text-slate-500 flex items-center justify-center space-x-2">
@@ -229,7 +228,6 @@ export default function TournamentsPage() {
               ))}
             </div>
           )}
-        </div>
       </div>
       </div>
     </>

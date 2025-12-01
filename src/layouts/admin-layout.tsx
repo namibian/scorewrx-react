@@ -9,6 +9,8 @@ import {
   Users,
   LogOut,
   Menu,
+  User,
+  Settings,
 } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -19,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import packageJson from '../../package.json'
 
 interface AdminLayoutProps {
   children: ReactNode
@@ -36,12 +39,29 @@ interface AdminLayoutProps {
 export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, logout } = useAuthStore()
+  const { user, userProfile, logout } = useAuthStore()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleLogout = async () => {
     await logout()
     navigate('/login')
+  }
+
+  const getUserInitials = () => {
+    if (userProfile?.firstName && userProfile?.lastName) {
+      return `${userProfile.firstName[0]}${userProfile.lastName[0]}`.toUpperCase()
+    }
+    if (user?.email) {
+      return user.email[0].toUpperCase()
+    }
+    return 'U'
+  }
+
+  const getUserName = () => {
+    if (userProfile?.firstName && userProfile?.lastName) {
+      return `${userProfile.firstName} ${userProfile.lastName}`
+    }
+    return user?.email || 'User'
   }
 
   const navItems = [
@@ -54,9 +74,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const isActivePath = (path: string) => location.pathname === path
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50">
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-40 border-b bg-white shadow-sm">
         <div className="container flex h-16 items-center px-4">
           {/* Logo/Brand */}
           <Link to="/dashboard" className="flex items-center space-x-2 mr-6">
@@ -85,19 +105,46 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </nav>
 
           {/* Desktop User Menu */}
-          <div className="hidden md:flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
+          <div className="hidden md:flex items-center gap-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
+                    {getUserInitials()}
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm font-medium">{getUserName()}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {userProfile?.affiliation || 'Admin'}
+                    </span>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium">{getUserName()}</p>
+                    <p className="text-xs text-muted-foreground">
               {user?.email}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-              className="gap-2"
-            >
-              <LogOut className="h-4 w-4" />
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled>
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem disabled>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                  <LogOut className="mr-2 h-4 w-4" />
               Logout
-            </Button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Mobile Menu Button */}
@@ -152,7 +199,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       {/* Footer */}
       <footer className="border-t py-6 mt-12">
         <div className="container px-4 text-center text-sm text-muted-foreground">
-          <p>ScoreWrx © {new Date().getFullYear()} - Golf Tournament Scoring</p>
+          <p>ScoreWrx © {new Date().getFullYear()} - v{packageJson.version}</p>
         </div>
       </footer>
     </div>

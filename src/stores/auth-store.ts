@@ -68,20 +68,41 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   fetchUserProfile: async (uid: string) => {
     try {
       const userDoc = await getDoc(doc(db, 'users', uid))
+      
       if (userDoc.exists()) {
         const data = userDoc.data()
+        
+        // Helper to convert various date formats to Date object
+        const toDate = (value: any): Date => {
+          if (!value) return new Date()
+          if (value instanceof Date) return value
+          if (typeof value?.toDate === 'function') return value.toDate()
+          if (typeof value === 'string' || typeof value === 'number') return new Date(value)
+          return new Date()
+        }
+        
         const profile: UserProfile = {
           email: data.email,
           affiliation: data.affiliation,
           firstName: data.firstName,
           lastName: data.lastName,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          updatedAt: data.updatedAt?.toDate() || new Date()
+          createdAt: toDate(data.createdAt),
+          updatedAt: toDate(data.updatedAt)
         }
+        
+        // Warn if affiliation is missing
+        if (!profile.affiliation) {
+          console.warn('User profile is missing affiliation field. Please add an "affiliation" field to the user document in Firebase.')
+        }
+        
         set({ userProfile: profile })
+      } else {
+        console.error('User document does not exist at: users/' + uid)
+        set({ userProfile: null })
       }
     } catch (err) {
       console.error('Failed to fetch user profile:', err)
+      set({ userProfile: null })
     }
   },
 
