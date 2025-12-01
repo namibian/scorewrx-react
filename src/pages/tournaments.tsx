@@ -4,6 +4,7 @@ import { useCoursesStore } from '@/stores/courses-store'
 import { Tournament } from '@/types'
 import { TournamentCard } from '@/components/tournaments/tournament-card'
 import { CreateTournamentDialog } from '@/components/tournaments/create-tournament-dialog'
+import { GroupManagerDialog } from '@/components/tournaments/group-manager-dialog'
 import { ConfirmDialog } from '@/components/common/confirm-dialog'
 import { Button } from '@/components/ui/button'
 import { Trophy, Plus, Loader2, History, Trash2 } from 'lucide-react'
@@ -26,6 +27,8 @@ export default function TournamentsPage() {
   
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingTournament, setEditingTournament] = useState<Tournament | null>(null)
+  const [showGroupManager, setShowGroupManager] = useState(false)
+  const [selectedTournamentId, setSelectedTournamentId] = useState<string>('')
   const [exporting, setExporting] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; tournament: Tournament | null }>({ 
     open: false, 
@@ -92,8 +95,8 @@ export default function TournamentsPage() {
   }
 
   const handleManageGroups = (tournament: Tournament) => {
-    console.log('Manage groups for tournament:', tournament)
-    // TODO: Open group manager
+    setSelectedTournamentId(tournament.id)
+    setShowGroupManager(true)
   }
 
   const handleShowCode = (tournament: Tournament) => {
@@ -236,6 +239,12 @@ export default function TournamentsPage() {
         open={showCreateDialog} 
         onOpenChange={handleCloseDialog}
         editingTournament={editingTournament}
+      />
+      
+      <GroupManagerDialog
+        open={showGroupManager}
+        onOpenChange={setShowGroupManager}
+        tournamentId={selectedTournamentId}
       />
       
       {/* Delete Tournament Confirmation */}
