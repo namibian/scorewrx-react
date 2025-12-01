@@ -62,7 +62,7 @@ export default function PlayersPage() {
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Player | 'name'
     direction: 'asc' | 'desc'
-  } | null>(null)
+  } | null>({ key: 'name', direction: 'asc' }) // Default sort by name ascending
 
   useEffect(() => {
     fetchPlayers()
@@ -753,16 +753,16 @@ export default function PlayersPage() {
                       className="rounded border-slate-300"
                     />
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="text-left">
                     <button
                       onClick={() => handleSort('name')}
-                      className="flex items-center hover:text-slate-900 font-semibold text-left"
+                      className="flex items-center hover:text-slate-900 font-semibold"
                     >
                       Name
                       {getSortIcon('name')}
                     </button>
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="text-left">
                     <button
                       onClick={() => handleSort('email')}
                       className="flex items-center hover:text-slate-900 font-semibold"
@@ -771,19 +771,19 @@ export default function PlayersPage() {
                       {getSortIcon('email')}
                     </button>
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="text-center">
                     <button
                       onClick={() => handleSort('handicapIndex')}
-                      className="flex items-center hover:text-slate-900 font-semibold"
+                      className="flex items-center justify-center w-full hover:text-slate-900 font-semibold"
                     >
                       Handicap
                       {getSortIcon('handicapIndex')}
                     </button>
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="text-center">
                     <button
                       onClick={() => handleSort('affiliation')}
-                      className="flex items-center hover:text-slate-900 font-semibold"
+                      className="flex items-center justify-center w-full hover:text-slate-900 font-semibold"
                     >
                       Affiliation
                       {getSortIcon('affiliation')}
@@ -816,7 +816,7 @@ export default function PlayersPage() {
                         className="rounded border-slate-300"
                       />
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium text-left">
                       {player.firstName} {player.lastName}
                     </TableCell>
                     <TableCell>
