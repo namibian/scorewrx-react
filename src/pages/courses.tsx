@@ -51,7 +51,7 @@ export default function CoursesPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-600 mb-4">
-            <GolfCourse className="w-12 h-12 mx-auto mb-2" />
+            <MapPin className="w-12 h-12 mx-auto mb-2" />
             <p className="text-lg font-semibold">Error loading courses</p>
             <p className="text-sm">{error}</p>
           </div>
@@ -69,7 +69,7 @@ export default function CoursesPage() {
       <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
         <div className="text-center max-w-md">
           <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <GolfCourse className="w-10 h-10 text-slate-400" />
+            <MapPin className="w-10 h-10 text-slate-400" />
           </div>
           <h2 className="text-2xl font-bold text-slate-900 mb-2">No Courses Yet</h2>
           <p className="text-slate-600 mb-6">Add your first golf course to get started</p>
@@ -114,7 +114,7 @@ export default function CoursesPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-                      <GolfCourse className="w-6 h-6 text-white" />
+                      <MapPin className="w-6 h-6 text-white" />
                     </div>
                   </div>
                   <Badge variant="secondary" className="flex items-center space-x-1">

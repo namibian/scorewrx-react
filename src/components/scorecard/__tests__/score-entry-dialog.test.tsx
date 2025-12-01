@@ -14,7 +14,9 @@ describe('ScoreEntryDialog Logic', () => {
       firstName: 'John',
       lastName: 'Doe',
       shortName: 'J. Doe',
+      handicapIndex: 10,
       tournamentHandicap: 10,
+      affiliation: 'Test Club',
       score: Array(18).fill(null),
       dots: Array(18).fill(0),
       dnf: Array(18).fill(false),
@@ -29,7 +31,9 @@ describe('ScoreEntryDialog Logic', () => {
       firstName: 'Jane',
       lastName: 'Smith',
       shortName: 'J. Smith',
+      handicapIndex: 15,
       tournamentHandicap: 15,
+      affiliation: 'Test Club',
       score: Array(18).fill(null),
       dots: Array(18).fill(0),
       dnf: Array(18).fill(false),
@@ -47,7 +51,6 @@ describe('ScoreEntryDialog Logic', () => {
     teeboxes: [
       {
         name: 'Blue',
-        par: 72,
         holes: Array(18)
           .fill(null)
           .map((_, idx) => ({
@@ -58,9 +61,7 @@ describe('ScoreEntryDialog Logic', () => {
           })),
       },
     ],
-    userId: 'user1',
-    affiliationId: 'aff1',
-  }
+  } as Course
 
   it('validates Par 3 holes correctly', () => {
     const par3Hole = mockCourse.teeboxes[0].holes[0]

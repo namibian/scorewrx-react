@@ -22,7 +22,7 @@ interface PlayerResult {
   isDNF: boolean
 }
 
-interface NinesPointResult {
+export interface NinesPointResult {
   playerId: string
   points: number
 }

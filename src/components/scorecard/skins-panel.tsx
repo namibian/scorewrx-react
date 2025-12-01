@@ -85,6 +85,8 @@ export function SkinsPanel({
             scratchParticipants,
             skinsConfig.scratchBuyIn ?? 5,
             skinsConfig.manualScratchPot
+              ? { enabled: true, amount: skinsConfig.manualScratchPot }
+              : undefined
           )
         : 0,
     [
@@ -100,6 +102,8 @@ export function SkinsPanel({
             handicapParticipants,
             skinsConfig.handicapBuyIn ?? 5,
             skinsConfig.manualHandicapPot
+              ? { enabled: true, amount: skinsConfig.manualHandicapPot }
+              : undefined
           )
         : 0,
     [

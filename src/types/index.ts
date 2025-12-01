@@ -41,6 +41,7 @@ export interface Player {
   tournamentHandicap: number
   skinsPool: 'None' | 'Scratch' | 'Handicap' | 'Both'
   affiliation: string
+  groupId?: string // Group ID for leaderboard tracking
   
   // Scoring data (18 elements each)
   score: (number | null)[]
@@ -195,6 +196,8 @@ export interface SkinsCompetition {
   useHalfStrokeOnPar3: boolean
   scratchParticipants?: ParticipantInfo[]
   handicapParticipants?: ParticipantInfo[]
+  manualScratchPot?: number
+  manualHandicapPot?: number
 }
 
 export interface ClosestToPinCompetition {
