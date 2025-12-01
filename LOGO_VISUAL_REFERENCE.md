@@ -112,3 +112,4 @@ The spider golf spike represents:
 
 **The logo successfully captures the essence of golf equipment while maintaining a modern, scalable, and professional appearance suitable for a scoring application.**
 
+

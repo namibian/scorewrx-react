@@ -298,3 +298,4 @@ Consider adding ConfirmDialog for:
 **All browser confirms replaced**: 5 replacements across 3 pages
 **New components created**: 2 (alert-dialog.tsx, confirm-dialog.tsx)
 
+

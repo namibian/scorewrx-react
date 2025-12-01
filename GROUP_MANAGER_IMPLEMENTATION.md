@@ -209,3 +209,4 @@ From `tournaments-store.ts`:
 - All state persists to Firebase on Save
 - Tournament auto-transitions to Active when groups are saved
 
+

@@ -157,3 +157,4 @@ const { courses, loading: coursesLoading } = useCoursesStore()
 - The loading state prevents confusion about whether courses are being fetched
 - The course count provides quick feedback about available options
 
+

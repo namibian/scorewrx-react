@@ -243,3 +243,4 @@ The 3-dot menu approach:
 
 The footer buttons are still present and functional. The 3-dot menu provides an alternative, more organized way to access the same actions. In the future, you might want to remove the footer buttons and use only the dropdown menu for a cleaner UI, like the original Vue implementation.
 
+
