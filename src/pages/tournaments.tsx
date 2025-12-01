@@ -231,6 +231,7 @@ export default function TournamentsPage() {
           )}
         </div>
       </div>
+      </div>
     </>
   )
 }
