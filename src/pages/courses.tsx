@@ -1,14 +1,19 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useCoursesStore } from '@/stores/courses-store'
 import { Course } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { MapPin, Plus, Loader2, Edit, Trash2, FileDown } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { ConfirmDialog } from '@/components/common/confirm-dialog'
+import { toast } from 'sonner'
 
 export default function CoursesPage() {
   const { courses, loading, error, fetchCourses, deleteCourse } = useCoursesStore()
-  // const [showCreateDialog, setShowCreateDialog] = useState(false) // TODO: Implement create dialog
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; course: Course | null }>({ 
+    open: false, 
+    course: null 
+  })
 
   useEffect(() => {
     fetchCourses()
@@ -25,13 +30,18 @@ export default function CoursesPage() {
   }
 
   const handleDelete = async (course: Course) => {
-    if (window.confirm(`Are you sure you want to delete "${course.name}"? This action cannot be undone.`)) {
-      try {
-        await deleteCourse(course.id)
-      } catch (err) {
-        console.error('Failed to delete course:', err)
-        alert('Failed to delete course')
-      }
+    setDeleteConfirm({ open: true, course })
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.course) return
+    
+    try {
+      await deleteCourse(deleteConfirm.course.id)
+      toast.success('Course deleted successfully')
+    } catch (err) {
+      console.error('Failed to delete course:', err)
+      toast.error('Failed to delete course')
     }
   }
 
@@ -75,7 +85,7 @@ export default function CoursesPage() {
           <p className="text-slate-600 mb-6">Add your first golf course to get started</p>
           <Button 
             size="lg"
-            onClick={() => alert('Create course dialog coming soon')}
+            onClick={() => toast.info('Create course dialog coming soon')}
             className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
           >
             <Plus className="w-5 h-5 mr-2" />
@@ -87,7 +97,20 @@ export default function CoursesPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <>
+      {/* Delete Course Confirmation */}
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) => setDeleteConfirm({ open, course: null })}
+        title="Delete Course"
+        description={`Are you sure you want to delete "${deleteConfirm.course?.name}"? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+      />
+
+      <div className="space-y-8">
         {/* Page Header */}
       <div>
           <div className="flex items-center justify-between mb-2">
@@ -96,7 +119,7 @@ export default function CoursesPage() {
               <p className="text-slate-600 mt-1">Manage your golf course library</p>
             </div>
           <Button 
-            onClick={() => alert('Create course dialog coming soon')}
+            onClick={() => toast.info('Create course dialog coming soon')}
             className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
           >
               <Plus className="w-5 h-5 mr-2" />
@@ -167,7 +190,8 @@ export default function CoursesPage() {
             </Card>
           ))}
       </div>
-    </div>
+      </div>
+    </>
   )
 }
 

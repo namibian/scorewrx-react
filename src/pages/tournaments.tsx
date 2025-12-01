@@ -4,9 +4,11 @@ import { useCoursesStore } from '@/stores/courses-store'
 import { Tournament } from '@/types'
 import { TournamentCard } from '@/components/tournaments/tournament-card'
 import { CreateTournamentDialog } from '@/components/tournaments/create-tournament-dialog'
+import { ConfirmDialog } from '@/components/common/confirm-dialog'
 import { Button } from '@/components/ui/button'
 import { Trophy, Plus, Loader2, History, Trash2 } from 'lucide-react'
 import { exportTournamentToCSV, canExportTournament } from '@/lib/export-utils'
+import { toast } from 'sonner'
 
 export default function TournamentsPage() {
   const { 
@@ -24,6 +26,11 @@ export default function TournamentsPage() {
   
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; tournament: Tournament | null }>({ 
+    open: false, 
+    tournament: null 
+  })
+  const [deleteAllConfirm, setDeleteAllConfirm] = useState(false)
 
   useEffect(() => {
     fetchTournaments()
@@ -97,7 +104,7 @@ export default function TournamentsPage() {
       const tournamentData = await getTournament(tournament.id)
       if (!tournamentData || !tournamentData.groups) {
         console.error('No tournament data or groups found')
-        alert('No tournament data or groups found')
+        toast.error('No tournament data or groups found')
         return
       }
 
@@ -115,7 +122,7 @@ export default function TournamentsPage() {
       
       if (!course || !course.teeboxes || !course.teeboxes[0] || !course.teeboxes[0].holes) {
         console.error('Course data not found')
-        alert('Course data not found. Please ensure the course is properly configured.')
+        toast.error('Course data not found. Please ensure the course is properly configured.')
         return
       }
       
@@ -126,34 +133,42 @@ export default function TournamentsPage() {
         course
       })
       
-      console.log('Tournament exported successfully')
+      toast.success('Tournament exported successfully')
     } catch (err) {
       console.error('Error exporting tournament:', err)
-      alert('Failed to export tournament. Please try again.')
+      toast.error('Failed to export tournament. Please try again.')
     } finally {
       setExporting(false)
     }
   }
 
   const handleDelete = async (tournament: Tournament) => {
-    if (window.confirm(`Are you sure you want to delete "${tournament.name}"? This action cannot be undone.`)) {
-      try {
-        await deleteTournament(tournament.id)
-      } catch (err) {
-        console.error('Failed to delete tournament:', err)
-        alert('Failed to delete tournament')
-      }
+    setDeleteConfirm({ open: true, tournament })
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.tournament) return
+    
+    try {
+      await deleteTournament(deleteConfirm.tournament.id)
+      toast.success('Tournament deleted successfully')
+    } catch (err) {
+      console.error('Failed to delete tournament:', err)
+      toast.error('Failed to delete tournament')
     }
   }
 
   const handleDeleteAll = async () => {
-    if (window.confirm(`Are you sure you want to delete ALL ${pastTournaments.length} past tournaments? This action cannot be undone.`)) {
-      try {
-        await Promise.all(pastTournaments.map(t => deleteTournament(t.id)))
-      } catch (err) {
-        console.error('Failed to delete tournaments:', err)
-        alert('Failed to delete some tournaments')
-      }
+    setDeleteAllConfirm(true)
+  }
+
+  const confirmDeleteAll = async () => {
+    try {
+      await Promise.all(pastTournaments.map(t => deleteTournament(t.id)))
+      toast.success('All past tournaments deleted successfully')
+    } catch (err) {
+      console.error('Failed to delete tournaments:', err)
+      toast.error('Failed to delete some tournaments')
     }
   }
 
@@ -211,6 +226,30 @@ export default function TournamentsPage() {
   return (
     <>
       <CreateTournamentDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
+      
+      {/* Delete Tournament Confirmation */}
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) => setDeleteConfirm({ open, tournament: null })}
+        title="Delete Tournament"
+        description={`Are you sure you want to delete "${deleteConfirm.tournament?.name}"? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+      />
+
+      {/* Delete All Tournaments Confirmation */}
+      <ConfirmDialog
+        open={deleteAllConfirm}
+        onOpenChange={setDeleteAllConfirm}
+        title="Delete All Past Tournaments"
+        description={`Are you sure you want to delete ALL ${pastTournaments.length} past tournaments? This action cannot be undone.`}
+        onConfirm={confirmDeleteAll}
+        confirmText="Delete All"
+        cancelText="Cancel"
+        variant="destructive"
+      />
       
       <div className="space-y-8">
         {/* Page Header */}

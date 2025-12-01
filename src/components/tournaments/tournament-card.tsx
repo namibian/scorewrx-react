@@ -50,6 +50,7 @@ export function TournamentCard({
 }: TournamentCardProps) {
   const hasGroups = tournament.groups && tournament.groups.length > 0
   const exportEnabled = canExportTournament(tournament)
+  const isPastTournament = tournament.state === 'Archived'
 
   const registrationStats = tournament.registeredPlayers 
     ? {
@@ -75,9 +76,11 @@ export function TournamentCard({
               </Badge>
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreVertical className="w-4 h-4" />
-          </Button>
+          {!isPastTournament && (
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
 
@@ -105,7 +108,7 @@ export function TournamentCard({
       </CardContent>
 
       <CardFooter className="flex flex-wrap gap-2 pt-3 border-t">
-        {tournament.state === 'Archived' ? (
+        {isPastTournament ? (
           // Past tournaments - Only Export and Delete
           <>
             <Button 

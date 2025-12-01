@@ -13,6 +13,7 @@ import { BetsPanel } from '@/components/scorecard/bets-panel'
 import { SkinsPanel } from '@/components/scorecard/skins-panel'
 import { LeaderboardTab } from '@/components/scorecard/leaderboard-tab'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function ScorecardPage() {
   const { tournamentId, playerId, groupId } = useParams<{
@@ -190,7 +191,7 @@ export default function ScorecardPage() {
 
   const enterEntryMode = () => {
     if (!isScorer && !isVerifier) {
-      alert('Only the scorer or verifier can enter scores')
+      toast.error('Only the scorer or verifier can enter scores')
       return
     }
     setSearchParams({ mode: 'entry' })
@@ -267,7 +268,7 @@ export default function ScorecardPage() {
       await tournamentsStore.updateGroup(tournamentId, groupId, updatedGroup)
     } catch (error) {
       console.error('Failed to save scores:', error)
-      alert('Failed to save scores. Please try again.')
+      toast.error('Failed to save scores. Please try again.')
     }
   }
 

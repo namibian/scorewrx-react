@@ -114,7 +114,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   </div>
                   <div className="flex flex-col items-start">
                     <span className="text-sm font-medium">{getUserName()}</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-slate-500">
                       {userProfile?.affiliation || 'Admin'}
                     </span>
                   </div>
@@ -124,7 +124,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium">{getUserName()}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-slate-500">
               {user?.email}
                     </p>
                   </div>
@@ -159,7 +159,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium">Menu</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-slate-500">
                       {user?.email}
                     </p>
                   </div>
@@ -198,7 +198,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
       {/* Footer */}
       <footer className="border-t py-6 mt-12">
-        <div className="container px-4 text-center text-sm text-muted-foreground">
+        <div className="container px-4 text-center text-sm text-slate-500">
           <p>ScoreWrx © {new Date().getFullYear()} - v{packageJson.version}</p>
         </div>
       </footer>

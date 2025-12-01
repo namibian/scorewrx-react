@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthGuard, GuestGuard } from './components/auth/auth-guard'
 import { AdminLayout } from './layouts/admin-layout'
 import { DeviceGuard } from './components/common/mobile-only-warning'
+import { Toaster } from 'sonner'
 import LoginPage from './pages/login'
 import RegisterPage from './pages/register'
 import Dashboard from './pages/dashboard'
@@ -14,7 +15,9 @@ import './App.css'
 
 function App() {
   return (
-    <BrowserRouter>
+    <>
+      <Toaster position="top-right" richColors closeButton />
+      <BrowserRouter>
       <Routes>
         {/* Public routes - No layout */}
         <Route path="/login" element={
@@ -89,6 +92,7 @@ function App() {
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
+    </>
   )
 }
 

@@ -21,11 +21,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { ConfirmDialog } from '@/components/common/confirm-dialog'
+import { toast } from 'sonner'
 
 export default function PlayersPage() {
   const { players, loading, error, fetchPlayers, deletePlayer } = usePlayersStore()
-  // const [showCreateDialog, setShowCreateDialog] = useState(false) // TODO: Implement create dialog
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([])
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; player: Player | null }>({ 
+    open: false, 
+    player: null 
+  })
+  const [deleteMultipleConfirm, setDeleteMultipleConfirm] = useState(false)
 
   useEffect(() => {
     fetchPlayers()
@@ -37,25 +43,33 @@ export default function PlayersPage() {
   }
 
   const handleDelete = async (player: Player) => {
-    if (window.confirm(`Are you sure you want to delete "${player.firstName} ${player.lastName}"? This action cannot be undone.`)) {
-      try {
-        await deletePlayer(player.id)
-      } catch (err) {
-        console.error('Failed to delete player:', err)
-        alert('Failed to delete player')
-      }
+    setDeleteConfirm({ open: true, player })
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.player) return
+    
+    try {
+      await deletePlayer(deleteConfirm.player.id)
+      toast.success('Player deleted successfully')
+    } catch (err) {
+      console.error('Failed to delete player:', err)
+      toast.error('Failed to delete player')
     }
   }
 
   const handleDeleteMultiple = async () => {
-    if (window.confirm(`Are you sure you want to delete ${selectedPlayers.length} players? This action cannot be undone.`)) {
-      try {
-        await Promise.all(selectedPlayers.map(id => deletePlayer(id)))
-        setSelectedPlayers([])
-      } catch (err) {
-        console.error('Failed to delete players:', err)
-        alert('Failed to delete some players')
-      }
+    setDeleteMultipleConfirm(true)
+  }
+
+  const confirmDeleteMultiple = async () => {
+    try {
+      await Promise.all(selectedPlayers.map(id => deletePlayer(id)))
+      setSelectedPlayers([])
+      toast.success('Players deleted successfully')
+    } catch (err) {
+      console.error('Failed to delete players:', err)
+      toast.error('Failed to delete some players')
     }
   }
 
@@ -110,7 +124,7 @@ export default function PlayersPage() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button 
               size="lg"
-              onClick={() => alert('Create player dialog coming soon')}
+              onClick={() => toast.info('Create player dialog coming soon')}
               className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
             >
               <UserPlus className="w-5 h-5 mr-2" />
@@ -131,7 +145,32 @@ export default function PlayersPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <>
+      {/* Delete Player Confirmation */}
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) => setDeleteConfirm({ open, player: null })}
+        title="Delete Player"
+        description={`Are you sure you want to delete "${deleteConfirm.player?.firstName} ${deleteConfirm.player?.lastName}"? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+      />
+
+      {/* Delete Multiple Players Confirmation */}
+      <ConfirmDialog
+        open={deleteMultipleConfirm}
+        onOpenChange={setDeleteMultipleConfirm}
+        title="Delete Multiple Players"
+        description={`Are you sure you want to delete ${selectedPlayers.length} player${selectedPlayers.length > 1 ? 's' : ''}? This action cannot be undone.`}
+        onConfirm={confirmDeleteMultiple}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+      />
+
+      <div className="space-y-8">
         {/* Page Header */}
       <div>
           <div className="flex items-center justify-between mb-2">
@@ -155,7 +194,7 @@ export default function PlayersPage() {
                 Import
               </Button>
             <Button 
-              onClick={() => alert('Create player dialog coming soon')}
+              onClick={() => toast.info('Create player dialog coming soon')}
               className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
             >
                 <UserPlus className="w-4 h-4 mr-2" />
@@ -267,7 +306,8 @@ export default function PlayersPage() {
             </Table>
           </CardContent>
         </Card>
-    </div>
+      </div>
+    </>
   )
 }
 
