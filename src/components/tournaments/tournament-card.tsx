@@ -11,10 +11,10 @@ import {
   Edit,
   Trash2,
   QrCode,
-  FileDown,
-  CheckCircle
+  FileDown
 } from 'lucide-react'
 import { format } from 'date-fns'
+import { canExportTournament } from '@/lib/export-utils'
 
 interface TournamentCardProps {
   tournament: Tournament
@@ -22,7 +22,6 @@ interface TournamentCardProps {
   onManageGroups: (tournament: Tournament) => void
   onShowCode: (tournament: Tournament) => void
   onExport: (tournament: Tournament) => void
-  onFinalize: (tournament: Tournament) => void
   onDelete: (tournament: Tournament) => void
 }
 
@@ -47,11 +46,10 @@ export function TournamentCard({
   onManageGroups,
   onShowCode,
   onExport,
-  onFinalize,
   onDelete
 }: TournamentCardProps) {
   const hasGroups = tournament.groups && tournament.groups.length > 0
-  const canExport = hasGroups && tournament.state === 'Archived'
+  const exportEnabled = canExportTournament(tournament)
 
   const registrationStats = tournament.registeredPlayers 
     ? {
@@ -107,70 +105,87 @@ export function TournamentCard({
       </CardContent>
 
       <CardFooter className="flex flex-wrap gap-2 pt-3 border-t">
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={() => onEdit(tournament)}
-          className="flex-1"
-        >
-          <Edit className="w-4 h-4 mr-1" />
-          Edit
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={() => onManageGroups(tournament)}
-          disabled={tournament.useOnlineRegistration && tournament.state !== 'Active'}
-          className="flex-1"
-        >
-          <Users className="w-4 h-4 mr-1" />
-          Groups
-        </Button>
-        
-        {hasGroups && (
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => onShowCode(tournament)}
-            className="flex-1"
-          >
-            <QrCode className="w-4 h-4 mr-1" />
-            Code
-          </Button>
-        )}
-        
-        {canExport && (
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => onExport(tournament)}
-            className="flex-1"
-          >
-            <FileDown className="w-4 h-4 mr-1" />
-            Export
-          </Button>
-        )}
+        {tournament.state === 'Archived' ? (
+          // Past tournaments - Only Export and Delete
+          <>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => onExport(tournament)}
+              className="flex-1"
+            >
+              <FileDown className="w-4 h-4 mr-1" />
+              Export
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => onDelete(tournament)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              Delete
+            </Button>
+          </>
+        ) : (
+          // Upcoming tournaments - Full set of actions
+          <>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => onEdit(tournament)}
+              className="flex-1"
+            >
+              <Edit className="w-4 h-4 mr-1" />
+              Edit
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => onManageGroups(tournament)}
+              disabled={tournament.useOnlineRegistration && tournament.state !== 'Active'}
+              className="flex-1"
+            >
+              <Users className="w-4 h-4 mr-1" />
+              Groups
+            </Button>
+            
+            {hasGroups && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => onShowCode(tournament)}
+                className="flex-1"
+              >
+                <QrCode className="w-4 h-4 mr-1" />
+                Code
+              </Button>
+            )}
 
-        {tournament.state === 'Active' && (
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => onFinalize(tournament)}
-            className="flex-1 text-green-600 hover:text-green-700"
-          >
-            <CheckCircle className="w-4 h-4 mr-1" />
-            Finalize
-          </Button>
-        )}
+            {hasGroups && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => onExport(tournament)}
+                disabled={!exportEnabled}
+                className="flex-1"
+                title={exportEnabled ? 'Export Data' : 'Export available when all scores are complete or tournament is past'}
+              >
+                <FileDown className="w-4 h-4 mr-1" />
+                Export
+              </Button>
+            )}
 
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={() => onDelete(tournament)}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => onDelete(tournament)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </>
+        )}
       </CardFooter>
     </Card>
   )

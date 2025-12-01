@@ -166,10 +166,10 @@ export function CreateTournamentDialog({ open, onOpenChange }: CreateTournamentD
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
+            <Button 
+              type="submit" 
               disabled={loading}
-              className="bg-gradient-to-r from-blue-600 to-blue-700"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
             >
               {loading ? 'Creating...' : 'Create Tournament'}
             </Button>

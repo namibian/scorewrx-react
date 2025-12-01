@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useTournamentsStore } from '@/stores/tournaments-store'
+import { useCoursesStore } from '@/stores/courses-store'
 import { Tournament } from '@/types'
 import { TournamentCard } from '@/components/tournaments/tournament-card'
 import { CreateTournamentDialog } from '@/components/tournaments/create-tournament-dialog'
 import { Button } from '@/components/ui/button'
 import { Trophy, Plus, Loader2, History, Trash2 } from 'lucide-react'
+import { exportTournamentToCSV, canExportTournament } from '@/lib/export-utils'
 
 export default function TournamentsPage() {
   const { 
@@ -12,15 +14,43 @@ export default function TournamentsPage() {
     loading, 
     error,
     fetchTournaments,
+    getTournament,
     deleteTournament,
-    finalizeTournament
+    updateTournamentState,
+    fetchTournamentGroups
   } = useTournamentsStore()
   
+  const { getCourseById, fetchCourseById } = useCoursesStore()
+  
   const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     fetchTournaments()
   }, [fetchTournaments])
+
+  // Automatically archive past active tournaments
+  useEffect(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    tournaments.forEach(async (tournament) => {
+      if (tournament.state === 'Active') {
+        const tournamentDate = typeof tournament.date === 'string' ? new Date(tournament.date) : tournament.date
+        tournamentDate.setHours(0, 0, 0, 0)
+        
+        // If tournament date is in the past, auto-archive it
+        if (tournamentDate < today) {
+          try {
+            await updateTournamentState(tournament.id, 'Archived')
+            console.log(`Auto-archived past tournament: ${tournament.name}`)
+          } catch (err) {
+            console.error(`Failed to auto-archive tournament ${tournament.name}:`, err)
+          }
+        }
+      }
+    })
+  }, [tournaments, updateTournamentState])
 
   // Split tournaments into upcoming and past
   const today = new Date()
@@ -29,13 +59,17 @@ export default function TournamentsPage() {
   const upcomingTournaments = tournaments.filter((t) => {
     const tournamentDate = typeof t.date === 'string' ? new Date(t.date) : t.date
     tournamentDate.setHours(0, 0, 0, 0)
-    return tournamentDate >= today || t.state === 'Active'
+    
+    // Only show as upcoming if not archived and date is today or future
+    // OR if state is Created/Open (pending setup)
+    if (t.state === 'Archived') return false
+    
+    return tournamentDate >= today || t.state === 'Created' || t.state === 'Open'
   })
 
   const pastTournaments = tournaments.filter((t) => {
-    const tournamentDate = typeof t.date === 'string' ? new Date(t.date) : t.date
-    tournamentDate.setHours(0, 0, 0, 0)
-    return tournamentDate < today && t.state === 'Archived'
+    // Past tournaments are only archived ones
+    return t.state === 'Archived'
   })
 
   const handleEdit = (tournament: Tournament) => {
@@ -53,19 +87,51 @@ export default function TournamentsPage() {
     // TODO: Show tournament code dialog
   }
 
-  const handleExport = (tournament: Tournament) => {
-    console.log('Export tournament:', tournament)
-    // TODO: Export tournament data
-  }
-
-  const handleFinalize = async (tournament: Tournament) => {
-    if (window.confirm(`Are you sure you want to finalize "${tournament.name}"? This will archive the tournament.`)) {
-      try {
-        await finalizeTournament(tournament.id)
-      } catch (err) {
-        console.error('Failed to finalize tournament:', err)
-        alert('Failed to finalize tournament')
+  const handleExport = async (tournament: Tournament) => {
+    if (exporting) return
+    
+    try {
+      setExporting(true)
+      
+      // Fetch the tournament with its groups to ensure we have the latest data
+      const tournamentData = await getTournament(tournament.id)
+      if (!tournamentData || !tournamentData.groups) {
+        console.error('No tournament data or groups found')
+        alert('No tournament data or groups found')
+        return
       }
+
+      // Get course data for hole pars and handicaps
+      let course = tournamentData.course ? getCourseById(tournamentData.course) : null
+      
+      // If course not in local store, fetch it
+      if (!course && tournamentData.course) {
+        try {
+          course = await fetchCourseById(tournamentData.course)
+        } catch (err) {
+          console.error('Error fetching course:', err)
+        }
+      }
+      
+      if (!course || !course.teeboxes || !course.teeboxes[0] || !course.teeboxes[0].holes) {
+        console.error('Course data not found')
+        alert('Course data not found. Please ensure the course is properly configured.')
+        return
+      }
+      
+      // Export to CSV
+      await exportTournamentToCSV({
+        tournament: tournamentData,
+        groups: tournamentData.groups,
+        course
+      })
+      
+      console.log('Tournament exported successfully')
+    } catch (err) {
+      console.error('Error exporting tournament:', err)
+      alert('Failed to export tournament. Please try again.')
+    } finally {
+      setExporting(false)
     }
   }
 
@@ -132,7 +198,7 @@ export default function TournamentsPage() {
           <Button 
             size="lg"
             onClick={() => setShowCreateDialog(true)}
-            className="bg-gradient-to-r from-blue-600 to-blue-700"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
           >
             <Plus className="w-5 h-5 mr-2" />
             Create Tournament
@@ -156,7 +222,7 @@ export default function TournamentsPage() {
             </div>
             <Button 
               onClick={() => setShowCreateDialog(true)}
-              className="bg-gradient-to-r from-blue-600 to-blue-700"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
             >
               <Plus className="w-5 h-5 mr-2" />
               Create Tournament
@@ -182,7 +248,6 @@ export default function TournamentsPage() {
                   onManageGroups={handleManageGroups}
                   onShowCode={handleShowCode}
                   onExport={handleExport}
-                  onFinalize={handleFinalize}
                   onDelete={handleDelete}
                 />
               ))}
@@ -221,7 +286,6 @@ export default function TournamentsPage() {
                     onManageGroups={handleManageGroups}
                     onShowCode={handleShowCode}
                     onExport={handleExport}
-                    onFinalize={handleFinalize}
                     onDelete={handleDelete}
                   />
                 </div>

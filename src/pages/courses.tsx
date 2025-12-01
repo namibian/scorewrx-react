@@ -76,7 +76,7 @@ export default function CoursesPage() {
           <Button 
             size="lg"
             onClick={() => alert('Create course dialog coming soon')}
-            className="bg-gradient-to-r from-blue-600 to-blue-700"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
           >
             <Plus className="w-5 h-5 mr-2" />
             Add Course
@@ -95,10 +95,10 @@ export default function CoursesPage() {
               <h1 className="text-3xl font-bold text-slate-900">Golf Courses</h1>
               <p className="text-slate-600 mt-1">Manage your golf course library</p>
             </div>
-            <Button 
-              onClick={() => alert('Create course dialog coming soon')}
-              className="bg-gradient-to-r from-blue-600 to-blue-700"
-            >
+          <Button 
+            onClick={() => alert('Create course dialog coming soon')}
+            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
+          >
               <Plus className="w-5 h-5 mr-2" />
               Add Course
             </Button>

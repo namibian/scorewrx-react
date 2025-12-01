@@ -111,7 +111,7 @@ export default function PlayersPage() {
             <Button 
               size="lg"
               onClick={() => alert('Create player dialog coming soon')}
-              className="bg-gradient-to-r from-blue-600 to-blue-700"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
             >
               <UserPlus className="w-5 h-5 mr-2" />
               Add Player
@@ -154,10 +154,10 @@ export default function PlayersPage() {
                 <Upload className="w-4 h-4 mr-2" />
                 Import
               </Button>
-              <Button 
-                onClick={() => alert('Create player dialog coming soon')}
-                className="bg-gradient-to-r from-blue-600 to-blue-700"
-              >
+            <Button 
+              onClick={() => alert('Create player dialog coming soon')}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
+            >
                 <UserPlus className="w-4 h-4 mr-2" />
                 Add Player
               </Button>
