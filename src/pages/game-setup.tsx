@@ -29,7 +29,13 @@ import { NassauSetup } from '@/components/game-setup/nassau-setup'
 import { DotsSetup } from '@/components/game-setup/dots-setup'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Home, MoreVertical } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 const SKINS_POOL_OPTIONS = ['None', 'Both', 'Handicap', 'Scratch']
 
@@ -395,9 +401,11 @@ export default function GameSetupPage() {
       // Check if we're in the /scoring flow or the legacy flow
       const isInScoringFlow = window.location.pathname.startsWith('/scoring/')
       if (isInScoringFlow) {
-        navigate(`/scoring/scorecard/${tournamentId}/${playerId}/${groupId}${debugParam}`)
+        // Scorer goes directly to score entry mode
+        const entryModeParam = debugParam ? '&mode=entry' : '?mode=entry'
+        navigate(`/scoring/scorecard/${tournamentId}/${playerId}/${groupId}${debugParam}${entryModeParam}`)
       } else {
-        navigate(`/tournament/${tournamentId}/group/${groupId}/player/${playerId}/scorecard`)
+        navigate(`/tournament/${tournamentId}/group/${groupId}/player/${playerId}/scorecard?mode=entry`)
       }
     } catch (err: any) {
       console.error('[GameSetup] Save error:', err)
@@ -411,15 +419,25 @@ export default function GameSetupPage() {
     }
   }
 
+  // Navigate to player landing
+  const handleHomeClick = () => {
+    navigate(`/scoring/select${debugParam}`)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
-        <header className="bg-emerald-700 text-white px-4 py-5">
-          <h1 className="text-center text-lg font-medium tracking-wide">Game Setup</h1>
+        {/* Header - Cornflower blue with smokewhite text */}
+        <header className="bg-[#6495ED] text-[#F5F5F5] px-4 py-4 sticky top-0 z-10">
+          <div className="flex items-center justify-between max-w-4xl mx-auto">
+            <div className="w-10" />
+            <h1 className="text-lg font-semibold tracking-wide">Game Setup</h1>
+            <div className="w-10" />
+          </div>
         </header>
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-emerald-600" />
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-[#6495ED]" />
             <p className="text-base text-neutral-600">Loading...</p>
           </div>
         </div>
@@ -430,8 +448,20 @@ export default function GameSetupPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-neutral-50">
-        <header className="bg-emerald-700 text-white px-4 py-5">
-          <h1 className="text-center text-lg font-medium tracking-wide">Game Setup</h1>
+        {/* Header - Cornflower blue with smokewhite text */}
+        <header className="bg-[#6495ED] text-[#F5F5F5] px-4 py-4 sticky top-0 z-10">
+          <div className="flex items-center justify-between max-w-4xl mx-auto">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleHomeClick}
+              className="text-[#F5F5F5] hover:bg-white/20"
+            >
+              <Home className="h-5 w-5" />
+            </Button>
+            <h1 className="text-lg font-semibold tracking-wide">Game Setup</h1>
+            <div className="w-10" />
+          </div>
         </header>
         <div className="p-4 max-w-lg mx-auto mt-6">
           <Alert variant="destructive" className="bg-red-50 border-red-200">
@@ -449,51 +479,63 @@ export default function GameSetupPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      {/* Clean Header */}
-      <header className="bg-emerald-700 text-white px-4 py-5 sticky top-0 z-10">
-        <h1 className="text-center text-lg font-medium tracking-wide">
-          Game Setup — Group {groupNumber}
-        </h1>
-      </header>
-
-      {/* Saving Overlay */}
-      {saving && (
-        <div className="fixed inset-0 bg-white/95 flex items-center justify-center z-50">
-          <div className="text-center px-6">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-emerald-600" />
-            <p className="text-lg font-medium text-neutral-900">Saving settings...</p>
-            <p className="text-sm text-neutral-500 mt-1">Please wait</p>
-          </div>
+      {/* Header - Cornflower blue with smokewhite text, sticky - includes stepper */}
+      <header className="bg-[#6495ED] text-[#F5F5F5] px-4 pt-4 pb-5 sticky top-0 z-10">
+        {/* Top row: Home button, title, spacer */}
+        <div className="flex items-center justify-between max-w-4xl mx-auto">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleHomeClick}
+            className="text-[#F5F5F5] hover:bg-white/20"
+          >
+            <Home className="h-5 w-5" />
+          </Button>
+          <h1 className="text-lg font-semibold tracking-wide">
+            Game Setup — Group {groupNumber}
+          </h1>
+          <div className="w-10" /> {/* Spacer for alignment */}
         </div>
-      )}
 
-      {/* Step Indicator */}
-      <div className="px-4 pt-4">
-        <div className="max-w-lg mx-auto flex items-center justify-center gap-2">
+        {/* Step Indicator - inside header, clickable */}
+        <div className="mt-4 max-w-lg mx-auto flex items-center justify-center gap-2">
           {[1, 2, 3].map((step) => (
             <div key={step} className="flex items-center">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+              <button
+                onClick={() => setCurrentStep(step)}
+                disabled={saving}
+                className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
                   step === currentStep
-                    ? 'bg-emerald-600 text-white'
+                    ? 'bg-white text-[#6495ED] scale-110'
                     : step < currentStep
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-neutral-200 text-neutral-500'
-                }`}
+                    ? 'bg-white/30 text-white hover:bg-white/50 cursor-pointer'
+                    : 'bg-white/20 text-white/70 hover:bg-white/30 cursor-pointer'
+                } disabled:cursor-not-allowed`}
               >
                 {step}
-              </div>
+              </button>
               {step < 3 && (
                 <div
-                  className={`w-12 h-1 mx-1 rounded ${
-                    step < currentStep ? 'bg-emerald-300' : 'bg-neutral-200'
+                  className={`w-10 h-1 mx-1 rounded ${
+                    step < currentStep ? 'bg-white/50' : 'bg-white/20'
                   }`}
                 />
               )}
             </div>
           ))}
         </div>
-      </div>
+      </header>
+
+      {/* Saving Overlay */}
+      {saving && (
+        <div className="fixed inset-0 bg-white/95 flex items-center justify-center z-50">
+          <div className="text-center px-6">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-[#6495ED]" />
+            <p className="text-lg font-medium text-neutral-900">Saving settings...</p>
+            <p className="text-sm text-neutral-500 mt-1">Please wait</p>
+          </div>
+        </div>
+      )}
 
       {/* Main Content - One step at a time */}
       <div className="px-4 py-6 max-w-lg mx-auto pb-24">
@@ -518,7 +560,7 @@ export default function GameSetupPage() {
               <div className="mt-5">
                 <Button 
                   onClick={() => setCurrentStep(2)} 
-                  className="w-full h-14 text-base font-medium bg-emerald-600 hover:bg-emerald-700"
+                  className="w-full h-14 text-base font-medium bg-[#6495ED] hover:bg-[#5A85D7] text-[#F5F5F5]"
                 >
                   Continue
                 </Button>
@@ -563,7 +605,7 @@ export default function GameSetupPage() {
                 </Button>
                 <Button 
                   onClick={() => setCurrentStep(3)} 
-                  className="flex-1 h-14 text-base font-medium bg-emerald-600 hover:bg-emerald-700"
+                  className="flex-1 h-14 text-base font-medium bg-[#6495ED] hover:bg-[#5A85D7] text-[#F5F5F5]"
                 >
                   Continue
                 </Button>
@@ -638,7 +680,7 @@ export default function GameSetupPage() {
                 <Button
                   onClick={saveGameSetup}
                   disabled={!validation.isValid || saving}
-                  className="flex-1 h-14 text-base font-medium bg-emerald-600 hover:bg-emerald-700 disabled:bg-neutral-300"
+                  className="flex-1 h-14 text-base font-medium bg-[#6495ED] hover:bg-[#5A85D7] text-[#F5F5F5] disabled:bg-neutral-300"
                 >
                   {saving ? (
                     <>

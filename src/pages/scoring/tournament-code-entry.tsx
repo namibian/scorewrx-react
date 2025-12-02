@@ -182,9 +182,9 @@ export default function TournamentCodeEntryPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50">
-      {/* Clean Header - High contrast for outdoor visibility */}
-      <header className="bg-emerald-700 text-white px-4 py-5">
-        <h1 className="text-center text-lg font-medium tracking-wide">ScoreWRX™</h1>
+      {/* Header - Cornflower blue with smokewhite text, sticky */}
+      <header className="bg-[#6495ED] text-[#F5F5F5] px-4 py-4 sticky top-0 z-10">
+        <h1 className="text-center text-lg font-semibold tracking-wide">ScoreWRX™</h1>
       </header>
 
       {/* Main Content - Centered, clean */}

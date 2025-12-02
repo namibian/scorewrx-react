@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { format } from 'date-fns'
-import { Loader2, Users, ChevronDown, Plus, Minus, Check } from 'lucide-react'
+import { Loader2, Users, ChevronDown, Plus, Minus, Check, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -433,13 +433,17 @@ export default function PlayerLandingPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
-        {/* Clean Header */}
-        <header className="bg-emerald-700 text-white px-4 py-5">
-          <h1 className="text-center text-lg font-medium tracking-wide">Game Setup</h1>
+        {/* Header - Cornflower blue with smokewhite text */}
+        <header className="bg-[#6495ED] text-[#F5F5F5] px-4 py-4 sticky top-0 z-10">
+          <div className="flex items-center justify-between max-w-4xl mx-auto">
+            <div className="w-10" />
+            <h1 className="text-lg font-semibold tracking-wide">Player Selection</h1>
+            <div className="w-10" />
+          </div>
         </header>
         <div className="flex-1 flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-emerald-600" />
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-[#6495ED]" />
             <p className="text-base text-neutral-600">Loading tournament...</p>
           </div>
         </div>
@@ -447,13 +451,30 @@ export default function PlayerLandingPage() {
     )
   }
 
+  // Navigate back to code entry
+  const handleHomeClick = () => {
+    clearTournamentSession()
+    navigate(`/scoring${debugParam}`)
+  }
+
   return (
     <div className="min-h-screen bg-neutral-50">
-      {/* Clean Header - High contrast for outdoor visibility */}
-      <header className="bg-emerald-700 text-white px-4 py-5 sticky top-0 z-10">
-        <h1 className="text-center text-lg font-medium tracking-wide">
-          {selectedPlayer ? `Group ${selectedGroup?.number || ''}` : 'Game Setup'}
-        </h1>
+      {/* Header - Cornflower blue with smokewhite text, sticky */}
+      <header className="bg-[#6495ED] text-[#F5F5F5] px-4 py-4 sticky top-0 z-10">
+        <div className="flex items-center justify-between max-w-4xl mx-auto">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleHomeClick}
+            className="text-[#F5F5F5] hover:bg-white/20"
+          >
+            <Home className="h-5 w-5" />
+          </Button>
+          <h1 className="flex-1 text-center text-lg font-semibold tracking-wide">
+            {selectedPlayer ? `Group ${selectedGroup?.number || ''}` : 'Player Selection'}
+          </h1>
+          <div className="w-10" /> {/* Spacer for alignment */}
+        </div>
       </header>
 
       {/* Processing Overlay */}
@@ -470,7 +491,7 @@ export default function PlayerLandingPage() {
       {/* Main Content - Clean, spacious layout */}
       <div className="px-4 py-6 max-w-lg mx-auto space-y-4">
         {/* Tournament Info - Simple, readable */}
-        <div className="bg-white rounded-xl p-5 border border-neutral-200">
+        <div className="bg-white rounded-xl p-5 border border-neutral-200 text-left">
           <h2 className="text-xl font-semibold text-neutral-900">{tournament?.name}</h2>
           <p className="text-base text-neutral-600 mt-1">{formatTournamentDate(tournament?.date)}</p>
           <p className="text-sm text-neutral-500 mt-0.5">{tournament?.courseName}</p>
@@ -488,7 +509,7 @@ export default function PlayerLandingPage() {
           
           <div className="p-5 space-y-5">
             {/* Player Dropdown - Grouped by group number */}
-            <div>
+            <div className="text-left">
               <Label htmlFor="player-select" className="text-sm font-medium text-neutral-700 mb-2 block">
                 Select Your Name
               </Label>
@@ -531,7 +552,7 @@ export default function PlayerLandingPage() {
 
                 {/* If scorer: Show editable group */}
                 {(isSelectedPlayerScorer || isScorer) ? (
-                  <div className="space-y-4">
+                  <div className="space-y-4 text-left">
                     <h4 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide">
                       Your Group
                     </h4>
@@ -619,7 +640,7 @@ export default function PlayerLandingPage() {
                   </div>
                 ) : (
                   /* If NOT scorer: Show role selection only */
-                  <div>
+                  <div className="text-left">
                     <h4 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide mb-3">
                       Your Role
                     </h4>

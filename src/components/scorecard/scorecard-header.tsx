@@ -14,7 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Link } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 interface ScorecardHeaderProps {
   courseName: string
@@ -53,16 +53,30 @@ export function ScorecardHeader({
   onEnterScoring,
   onExitScoring,
 }: ScorecardHeaderProps) {
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  
+  // Preserve debug mode through navigation
+  const debugParam = searchParams.get('debug') === 'true' ? '?debug=true' : ''
+
+  const handleHomeClick = () => {
+    // Navigate to player landing page, not admin dashboard
+    navigate(`/scoring/select${debugParam}`)
+  }
+
   return (
-    <header className="bg-primary text-primary-foreground p-4 sticky top-0 z-10">
+    <header className="bg-[#6495ED] text-[#F5F5F5] p-4 sticky top-0 z-10">
       <div className="flex items-center justify-between">
         {/* Back button */}
-        <Link to={`/tournament/${tournamentId}/landing`}>
-          <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary/90">
-            <Home className="h-5 w-5" />
-            <span className="sr-only">Back to Tournament Landing</span>
-          </Button>
-        </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleHomeClick}
+          className="text-[#F5F5F5] hover:bg-white/20"
+        >
+          <Home className="h-5 w-5" />
+          <span className="sr-only">Back to Player Landing</span>
+        </Button>
 
         {/* Title */}
         <div className="flex-1 text-center">
@@ -115,7 +129,11 @@ export function ScorecardHeader({
           {/* Menu Button */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary/90">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-[#F5F5F5] hover:bg-white/20"
+              >
                 <MoreVertical className="h-5 w-5" />
                 <span className="sr-only">Menu</span>
               </Button>
@@ -212,4 +230,3 @@ export function ScorecardHeader({
     </header>
   )
 }
-

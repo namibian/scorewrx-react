@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { onSnapshot, doc } from 'firebase/firestore'
 import { db } from '@/lib/firebase/config'
@@ -7,7 +7,7 @@ import { useCoursesStore } from '@/stores/courses-store'
 import { Player, Course, Group, Tournament } from '@/types'
 import { ScorecardHeader } from '@/components/scorecard/scorecard-header'
 import { ScorecardGrid } from '@/components/scorecard/scorecard-grid'
-import { ScoreEntryDialog } from '@/components/scorecard/score-entry-dialog'
+import { ScorerEntryContent } from '@/components/scorecard/scorer-entry-content'
 import { MatchPanel } from '@/components/scorecard/match-panel'
 import { BetsPanel } from '@/components/scorecard/bets-panel'
 import { SkinsPanel } from '@/components/scorecard/skins-panel'
@@ -35,12 +35,42 @@ export default function ScorecardPage() {
     new Map()
   )
   const [allPlayers, setAllPlayers] = useState<Map<string, Player>>(new Map())
-  const [scoreDialogOpen, setScoreDialogOpen] = useState(false)
-  const [selectedHole, setSelectedHole] = useState(1)
+  const [currentEntryHole, setCurrentEntryHole] = useState(1)
 
   const isEntryMode = searchParams.get('mode') === 'entry'
   const isScorer = group?.scorerId === playerId
   const isVerifier = group?.verifierId === playerId
+
+  // Find the next unscored hole
+  const findNextUnscoredHole = useCallback(() => {
+    if (!group?.players) return 1
+
+    const startingTee = group.startingTee || 1
+
+    // Build array of holes in play order
+    const holesInOrder: number[] = []
+    for (let i = 0; i < 18; i++) {
+      const hole = ((startingTee - 1 + i) % 18) + 1
+      holesInOrder.push(hole)
+    }
+
+    // Find first hole without all scores entered
+    for (const hole of holesInOrder) {
+      const holeIndex = hole - 1
+      const allScored = group.players.every(player => {
+        const score = player.score?.[holeIndex]
+        const dnf = player.dnf?.[holeIndex]
+        return (score !== null && score !== undefined) || dnf
+      })
+
+      if (!allScored) {
+        return hole
+      }
+    }
+
+    // If all holes have scores, return to starting tee
+    return startingTee
+  }, [group])
 
   useEffect(() => {
     const loadData = async () => {
@@ -94,6 +124,14 @@ export default function ScorecardPage() {
     loadData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tournamentId, groupId])
+
+  // Set initial entry hole when entering entry mode
+  useEffect(() => {
+    if (isEntryMode && group) {
+      const nextHole = findNextUnscoredHole()
+      setCurrentEntryHole(nextHole)
+    }
+  }, [isEntryMode, group, findNextUnscoredHole])
 
   // Real-time updates from Firestore
   useEffect(() => {
@@ -195,70 +233,68 @@ export default function ScorecardPage() {
       toast.error('Only the scorer or verifier can enter scores')
       return
     }
+    // Find the next unscored hole
+    const nextHole = findNextUnscoredHole()
+    setCurrentEntryHole(nextHole)
     setSearchParams({ mode: 'entry' })
   }
 
   const exitEntryMode = () => {
+    setActiveTab('scorecard')
     setSearchParams({})
   }
 
-  const handleRowClick = (hole: number) => {
-    if (isEntryMode && (isScorer || isVerifier)) {
-      setSelectedHole(hole)
-      setScoreDialogOpen(true)
-    }
+  // Navigation handlers for entry mode
+  const navigateToPreviousHole = () => {
+    setCurrentEntryHole(prev => prev === 1 ? 18 : prev - 1)
   }
 
-  const handleSaveScores = async (
-    hole: number,
-    scores: Array<{
-      playerId: string
+  const navigateToNextHole = () => {
+    setCurrentEntryHole(prev => prev === 18 ? 1 : prev + 1)
+  }
+
+  const jumpToHole = (hole: number) => {
+    setCurrentEntryHole(hole)
+  }
+
+  // Handle saving scores from the entry content
+  const handleSaveFromEntry = async (saveData: {
+    hole: number
+    scores: Record<string, {
       score: number | null
       dots: number
-      greenie: boolean
-      sandy: boolean
       dnf: boolean
+      greenieToggle: boolean
+      sandyToggle: boolean
+      greenies: number[]
+      sandies: number[]
+      dnfArray: boolean[]
     }>
-  ) => {
+  }) => {
     if (!tournamentId || !groupId || !group) return
 
     try {
+      const { hole, scores } = saveData
+
       // Update each player's scores
       const updatedPlayers = group.players.map((player) => {
-        const scoreData = scores.find((s) => s.playerId === player.id)
+        const scoreData = scores[player.id]
         if (!scoreData) return player
 
         const newScore = [...(player.score || Array(18).fill(null))]
         const newDots = [...(player.dots || Array(18).fill(0))]
-        const newDnf = [...(player.dnf || Array(18).fill(false))]
-        const newGreenies = [...(player.greenies || [])]
-        const newSandies = [...(player.sandies || [])]
 
         // Update arrays
         newScore[hole - 1] = scoreData.score
         newDots[hole - 1] = scoreData.dots
-        newDnf[hole - 1] = scoreData.dnf
-
-        // Update greenie/sandy arrays
-        if (scoreData.greenie && !newGreenies.includes(hole)) {
-          newGreenies.push(hole)
-        } else if (!scoreData.greenie && newGreenies.includes(hole)) {
-          newGreenies.splice(newGreenies.indexOf(hole), 1)
-        }
-
-        if (scoreData.sandy && !newSandies.includes(hole)) {
-          newSandies.push(hole)
-        } else if (!scoreData.sandy && newSandies.includes(hole)) {
-          newSandies.splice(newSandies.indexOf(hole), 1)
-        }
 
         return {
           ...player,
           score: newScore,
           dots: newDots,
-          dnf: newDnf,
-          greenies: newGreenies,
-          sandies: newSandies,
+          dnf: scoreData.dnfArray,
+          greenies: scoreData.greenies,
+          sandies: scoreData.sandies,
         }
       })
 
@@ -267,17 +303,18 @@ export default function ScorecardPage() {
 
       // Save to Firestore via store
       await tournamentsStore.updateGroup(tournamentId, groupId, updatedGroup)
+
+      toast.success(`Hole ${hole} saved`)
+
+      // Navigate to next unscored hole
+      // Need to wait for state update, then find next hole
+      setTimeout(() => {
+        const nextHole = findNextUnscoredHole()
+        setCurrentEntryHole(nextHole)
+      }, 100)
     } catch (error) {
       console.error('Failed to save scores:', error)
       toast.error('Failed to save scores. Please try again.')
-    }
-  }
-
-  const handleNavigateHole = (direction: 'prev' | 'next') => {
-    if (direction === 'prev' && selectedHole > 1) {
-      setSelectedHole(selectedHole - 1)
-    } else if (direction === 'next' && selectedHole < 18) {
-      setSelectedHole(selectedHole + 1)
     }
   }
 
@@ -327,32 +364,34 @@ export default function ScorecardPage() {
       />
 
       {/* Main Content */}
-      <div className="container max-w-7xl mx-auto p-4">
-        {isEntryMode ? (
-          <ScorecardGrid
-            golfers={group.players}
-            localPlayerScores={localPlayerScores}
-            isScorer={isScorer}
-            hasStrokes={hasStrokes}
-            getHolePar={getHolePar}
-            getHoleHdcp={getHoleHdcp}
-            games={group.gameSettings || {}}
-            course={course}
-            onRowClick={handleRowClick}
-          />
-        ) : (
+      {/* Score Entry Mode - Inline component replaces tabs */}
+      {isEntryMode && (isScorer || isVerifier) ? (
+        <ScorerEntryContent
+          currentHole={currentEntryHole}
+          group={group}
+          course={course}
+          tournament={tournament}
+          isVerifier={isVerifier}
+          onNavigatePrevious={navigateToPreviousHole}
+          onNavigateNext={navigateToNextHole}
+          onJumpToHole={jumpToHole}
+          onSave={handleSaveFromEntry}
+        />
+      ) : (
+        <div className="container max-w-7xl mx-auto p-4">
+          /* Regular Scorecard Views - Read Only */
           <>
             {activeTab === 'scorecard' && (
               <ScorecardGrid
                 golfers={group.players}
                 localPlayerScores={localPlayerScores}
-                isScorer={isScorer}
+                isScorer={false} // Always false - scorecard is view-only
                 hasStrokes={hasStrokes}
                 getHolePar={getHolePar}
                 getHoleHdcp={getHoleHdcp}
                 games={group.gameSettings || {}}
                 course={course}
-                onRowClick={handleRowClick}
+                onRowClick={() => {}} // No-op - scorecard is view-only
               />
             )}
 
@@ -395,24 +434,8 @@ export default function ScorecardPage() {
               />
             )}
           </>
-        )}
-      </div>
-
-      {/* Score Entry Dialog */}
-      {group && course && (
-        <ScoreEntryDialog
-          open={scoreDialogOpen}
-          onClose={() => setScoreDialogOpen(false)}
-          hole={selectedHole}
-          players={group.players}
-          course={course}
-          localPlayerScores={localPlayerScores}
-          isVerifier={isVerifier}
-          onSaveScores={handleSaveScores}
-          onNavigate={handleNavigateHole}
-        />
+        </div>
       )}
     </div>
   )
 }
-
