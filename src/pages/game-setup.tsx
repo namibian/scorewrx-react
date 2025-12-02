@@ -213,8 +213,9 @@ export default function GameSetupPage() {
       }
     }
 
-    // Check dots game setup
-    if (games.dots.enabled && games.dots.participants.length < 2) {
+    // Check dots game setup - Vue format: participants is array of { playerId, selected }
+    const selectedDotsParticipants = games.dots.participants?.filter((p: any) => p.selected) || []
+    if (games.dots.enabled && selectedDotsParticipants.length < 2) {
       return {
         isValid: false,
         error: 'Dots game requires at least 2 participants',
@@ -315,8 +316,11 @@ export default function GameSetupPage() {
           )
         }
 
-        // Dots strokes
-        if (games.dots.enabled) {
+        // Dots strokes - only calculate for selected participants (Vue format check)
+        const isPlayerSelectedForDots = games.dots.participants?.find(
+          (p: any) => p.playerId === player.id
+        )?.selected
+        if (games.dots.enabled && isPlayerSelectedForDots) {
           const totalStrokes = calculateTotalStrokes(
             player,
             players,

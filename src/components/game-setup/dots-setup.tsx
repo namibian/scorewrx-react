@@ -53,16 +53,23 @@ export function DotsSetup({
     })
   }
 
+  // Vue format: participants is array of { playerId, selected } objects
   const isPlayerSelected = (playerId: string) => {
-    return value.participants.includes(playerId)
+    const participant = value.participants?.find(p => p.playerId === playerId)
+    return participant ? participant.selected : false
   }
 
   const togglePlayer = (playerId: string, selected: boolean) => {
     if (saving) return
 
-    const participants = selected
-      ? [...value.participants, playerId]
-      : value.participants.filter((id) => id !== playerId)
+    const participants = [...(value.participants || [])]
+    const index = participants.findIndex(p => p.playerId === playerId)
+    
+    if (index >= 0) {
+      participants[index] = { ...participants[index], selected }
+    } else {
+      participants.push({ playerId, selected })
+    }
 
     onChange({
       ...value,
@@ -72,14 +79,15 @@ export function DotsSetup({
 
   // Initialize all players as selected when enabled for the first time
   useEffect(() => {
-    if (value.enabled && value.participants.length === 0) {
+    if (value.enabled && (!value.participants || value.participants.length === 0)) {
+      // Vue format: array of { playerId, selected } objects
       onChange({
         ...value,
-        participants: players.map((player) => player.id),
+        participants: players.map((player) => ({ playerId: player.id, selected: true })),
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value.enabled, value.participants.length, players])
+  }, [value.enabled, value.participants?.length, players])
 
   const getToggleHint = () => {
     if (!canPlayDots) return 'Requires at least 2 players'

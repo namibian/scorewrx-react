@@ -298,17 +298,12 @@ export function CreateTournamentDialog({ open, onOpenChange, editingTournament }
         lastUpdated: new Date()
       }
 
-      // Handle shotgun start - store as object like Vue version does
+      // Handle shotgun start - Vue stores as boolean with separate shotgunStartTime field
       if (formData.shotgunStart) {
-        tournamentData.shotgunStart = {
-          enabled: true,
-          startTime: formData.shotgunStartTime || '08:00'
-        }
+        tournamentData.shotgunStart = true
+        tournamentData.shotgunStartTime = formData.shotgunStartTime || '08:00'
       } else {
-        tournamentData.shotgunStart = {
-          enabled: false,
-          startTime: '08:00'
-        }
+        tournamentData.shotgunStart = false
         tournamentData.defaultStartingTee = formData.defaultStartingTee
       }
 

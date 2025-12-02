@@ -17,13 +17,14 @@ export const DEFAULT_SIXES_SETTINGS = {
 }
 
 // Default settings for dots game
+// Vue format: participants is array of { playerId: string, selected: boolean }
 export const DEFAULT_DOTS_SETTINGS = {
   enabled: true,
   amountPerDot: DEFAULT_DOTS_AMOUNT,
   useDifferentialHandicap: true,
   trackGreenies: true,
   trackSandies: true,
-  participants: [] as string[],
+  participants: [] as { playerId: string; selected: boolean }[],
 }
 
 // Default settings for nines game

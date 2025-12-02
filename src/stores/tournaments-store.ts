@@ -396,7 +396,7 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
           ? tournamentData.date.toISOString().split('T')[0]
           : new Date().toISOString().split('T')[0]
 
-      // Build the tournament document, excluding undefined fields
+      // Build the tournament document matching Vue format exactly
       const tournamentDoc: any = {
         name: tournamentData.name,
         date: dateValue,
@@ -408,40 +408,24 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
         lastUpdated: new Date(),
         state: 'Created',
         
-        // Registration settings
+        // Registration settings - match Vue format
         useOnlineRegistration: tournamentData.useOnlineRegistration || false,
         maxRegistrations: tournamentData.maxRegistrations || null,
-        registeredPlayers: [],
-        waitingList: [],
-        
-        // Tournament configuration
-        shotgunStart: tournamentData.shotgunStart ? {
-          enabled: true,
-          startTime: tournamentData.shotgunStartTime || '08:00'
-        } : {
-          enabled: false,
-          startTime: '08:00'
-        }
+        registeredPlayers: []
+        // Note: waitingList is NOT added on creation - Vue doesn't add it
       }
 
-      // Only add defaultStartingTee if shotgun start is disabled
-      if (!tournamentData.shotgunStart) {
-        tournamentDoc.defaultStartingTee = 1
+      // shotgunStart is stored as boolean in Vue, with separate shotgunStartTime field
+      if (tournamentData.shotgunStart) {
+        tournamentDoc.shotgunStart = true
+        tournamentDoc.shotgunStartTime = tournamentData.shotgunStartTime || '08:00'
+      } else {
+        tournamentDoc.shotgunStart = false
       }
 
-      // Only add competitions if they exist and have at least one enabled competition
+      // Only add competitions if explicitly provided (Vue doesn't add defaults)
       if (tournamentData.competitions && Object.keys(tournamentData.competitions).length > 0) {
         tournamentDoc.competitions = tournamentData.competitions
-      } else {
-        // Default: skins enabled
-        tournamentDoc.competitions = {
-          skins: {
-            enabled: true,
-            scratchBuyIn: 5.00,
-            handicapBuyIn: 5.00,
-            useHalfStrokeOnPar3: true
-          }
-        }
       }
 
       const tournamentRef = doc(collection(db, 'tournaments'))
@@ -657,6 +641,7 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
         const groupId = group.id || doc(groupsRef).id
         processedGroupIds.add(groupId)
 
+        // Match Vue format exactly - no 'affiliation' field on players in groups
         const players = (group.players || []).map((player: any) => {
           if (!player.id) {
             throw new Error('Player missing ID')
@@ -672,7 +657,6 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
             skinsPool: player.skinsPool || 'None',
             cart: player.cart || '',
             position: player.position || '',
-            affiliation: player.affiliation || '',
             score: Array.isArray(player.score) ? player.score : Array(18).fill(null),
             dots: Array.isArray(player.dots) ? player.dots : Array(18).fill(0),
             dnf: Array.isArray(player.dnf) ? player.dnf : Array(18).fill(false),
@@ -815,6 +799,7 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
         const greenies = existingPlayer?.greenies || []
         const sandies = existingPlayer?.sandies || []
 
+        // Match Vue format exactly - no 'affiliation' field on players in groups
         return {
           id: player.id,
           firstName: player.firstName,
@@ -831,8 +816,7 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
           dnf,
           greenies,
           sandies,
-          skinsPool: player.skinsPool || 'None',
-          affiliation: player.affiliation || ''
+          skinsPool: player.skinsPool || 'None'
         }
       })
 
@@ -1071,9 +1055,11 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
         verificationStatus: group.verificationStatus || Array(18).fill(null),
         lastUpdated: new Date(),
         gameSettings: group.gameSettings || null,
+        // Match Vue format - build player object to match Vue's updateGroup structure
         players: group.players.map((p): Player => {
           const normalizedStrokeHoles = normalizeStrokeHoles(p.strokeHoles, p.id)
           // Build player object explicitly to avoid undefined values (Firebase rejects them)
+          // Note: No 'affiliation' field on players in groups (Vue doesn't include it)
           const player: Record<string, any> = {
             id: p.id,
             firstName: p.firstName || '',
@@ -1088,7 +1074,6 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
             sandies: Array.isArray(p.sandies) ? p.sandies : [],
           }
           // Only add optional fields if they have valid values
-          if (p.affiliation) player.affiliation = p.affiliation
           if (p.email) player.email = p.email
           if (p.cart === '1' || p.cart === '2') player.cart = p.cart
           if (p.position === 'driver' || p.position === 'rider') player.position = p.position

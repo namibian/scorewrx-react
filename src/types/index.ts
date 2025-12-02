@@ -107,7 +107,8 @@ export interface DotsSettings {
   useDifferentialHandicap: boolean
   trackGreenies: boolean
   trackSandies: boolean
-  participants: string[]  // Array of player IDs who are selected
+  // Vue format: Array of { playerId: string, selected: boolean }
+  participants: DotsParticipant[]
 }
 
 export interface GameSettings {
