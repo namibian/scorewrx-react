@@ -7,6 +7,7 @@ import { Tournament } from '@/types'
 import { TournamentCard } from '@/components/tournaments/tournament-card'
 import { CreateTournamentDialog } from '@/components/tournaments/create-tournament-dialog'
 import { GroupManagerDialog } from '@/components/tournaments/group-manager-dialog'
+import { RegistrationDashboard } from '@/components/tournaments/registration-dashboard'
 import { ConfirmDialog } from '@/components/common/confirm-dialog'
 import { Button } from '@/components/ui/button'
 import { Trophy, Plus, Loader2, History, Trash2 } from 'lucide-react'
@@ -45,6 +46,9 @@ export default function TournamentsPage() {
   })
   // Track which tournaments have groups loaded (for menu item enablement)
   const [tournamentGroupsStatus, setTournamentGroupsStatus] = useState<Record<string, boolean>>({})
+  // Registration dashboard state
+  const [showRegistrationDashboard, setShowRegistrationDashboard] = useState(false)
+  const [selectedTournamentForRegistration, setSelectedTournamentForRegistration] = useState<Tournament | null>(null)
 
   // Fetch data when userProfile becomes available (has affiliation)
   useEffect(() => {
@@ -227,9 +231,8 @@ export default function TournamentsPage() {
   }
 
   const handleViewRegistrations = (tournament: Tournament) => {
-    // TODO: Implement registration dashboard dialog
-    console.log('View registrations for tournament:', tournament)
-    toast.info('Registration dashboard coming soon')
+    setSelectedTournamentForRegistration(tournament)
+    setShowRegistrationDashboard(true)
   }
 
   const handleExport = async (tournament: Tournament) => {
@@ -373,6 +376,12 @@ export default function TournamentsPage() {
         open={showGroupManager}
         onOpenChange={handleGroupManagerClose}
         tournamentId={selectedTournamentId}
+      />
+      
+      <RegistrationDashboard
+        open={showRegistrationDashboard}
+        onOpenChange={setShowRegistrationDashboard}
+        tournament={selectedTournamentForRegistration}
       />
       
       {/* Delete Tournament Confirmation */}

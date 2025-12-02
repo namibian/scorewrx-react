@@ -283,22 +283,38 @@ export function CreateTournamentDialog({ open, onOpenChange, editingTournament }
         }
       }
 
-      const tournamentData = {
+      // Build tournament data object, avoiding undefined values for Firestore
+      const tournamentData: Record<string, any> = {
         name: formData.name,
         date: formData.date,
         courseId: formData.course,
         course: formData.course,
         affiliation: userProfile.affiliation,
-        shotgunStart: formData.shotgunStart,
-        shotgunStartTime: formData.shotgunStart ? formData.shotgunStartTime : undefined,
         playType: formData.playType,
         scoringFormat: formData.scoringFormat,
         handicapFormat: formData.handicapFormat,
-        defaultStartingTee: formData.shotgunStart ? undefined : formData.defaultStartingTee,
         useOnlineRegistration: formData.useOnlineRegistration,
         maxRegistrations: formData.maxRegistrations,
-        competitions: Object.keys(competitions).length > 0 ? competitions : undefined,
         lastUpdated: new Date()
+      }
+
+      // Handle shotgun start - store as object like Vue version does
+      if (formData.shotgunStart) {
+        tournamentData.shotgunStart = {
+          enabled: true,
+          startTime: formData.shotgunStartTime || '08:00'
+        }
+      } else {
+        tournamentData.shotgunStart = {
+          enabled: false,
+          startTime: '08:00'
+        }
+        tournamentData.defaultStartingTee = formData.defaultStartingTee
+      }
+
+      // Only include competitions if there are any enabled
+      if (Object.keys(competitions).length > 0) {
+        tournamentData.competitions = competitions
       }
 
       if (editingTournament) {

@@ -8,6 +8,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu'
 import { 
   Trophy, 
@@ -24,7 +27,8 @@ import {
   CheckCircle,
   Send,
   Link,
-  ClipboardList
+  ClipboardList,
+  UserPlus
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { canExportTournament } from '@/lib/export-utils'
@@ -86,6 +90,11 @@ export function TournamentCard({
       }
     : null
 
+  // Check if any registration menu items should be shown
+  const showRegistrationSubmenu = hasOnlineRegistration && (
+    isCreated || isOpen || isActive || (registrationStats && registrationStats.total > 0)
+  )
+
   return (
     <Card className="tournament-card hover:shadow-lg transition-shadow duration-200">
       <CardHeader className="pb-3">
@@ -122,9 +131,55 @@ export function TournamentCard({
                 >
                   <UsersRound className="w-4 h-4 mr-2" />
                   Manage Groups
+                  {hasOnlineRegistration && !isActive && (
+                    <span className="ml-auto text-xs text-slate-400">Close reg first</span>
+                  )}
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
+                
+                {/* Registration Submenu */}
+                {showRegistrationSubmenu && (
+                  <>
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Registration
+                        {registrationStats && registrationStats.accepted > 0 && (
+                          <Badge variant="secondary" className="ml-auto text-xs">
+                            {registrationStats.accepted}
+                          </Badge>
+                        )}
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        {isCreated && (
+                          <DropdownMenuItem 
+                            onClick={() => onOpenRegistration?.(tournament)}
+                            className="text-green-600 focus:text-green-600 focus:bg-green-50"
+                          >
+                            <Send className="w-4 h-4 mr-2" />
+                            Open Registration
+                          </DropdownMenuItem>
+                        )}
+                        
+                        {isOpen && (
+                          <DropdownMenuItem onClick={() => onCopyLink?.(tournament)}>
+                            <Link className="w-4 h-4 mr-2" />
+                            Copy Registration Link
+                          </DropdownMenuItem>
+                        )}
+                        
+                        {(isOpen || isActive || (registrationStats && registrationStats.total > 0)) && (
+                          <DropdownMenuItem onClick={() => onViewRegistrations?.(tournament)}>
+                            <ClipboardList className="w-4 h-4 mr-2" />
+                            View Registrations
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 
                 <DropdownMenuItem 
                   onClick={() => onScoringPage?.(tournament)}
@@ -136,7 +191,7 @@ export function TournamentCard({
                 
                 <DropdownMenuItem 
                   onClick={() => onShowCode(tournament)}
-                  disabled={!hasGroups}
+                  disabled={!tournament.code}
                 >
                   <QrCode className="w-4 h-4 mr-2" />
                   Show Code & Link
@@ -198,9 +253,9 @@ export function TournamentCard({
         </div>
       </CardContent>
 
-      <CardFooter className="flex flex-wrap gap-2 pt-3 border-t">
+      <CardFooter className="flex gap-2 pt-3 border-t">
         {isPastTournament ? (
-          // Past tournaments - Only Export and Delete
+          // Past tournaments - Export and Delete only
           <>
             <Button 
               variant="ghost" 
@@ -222,7 +277,7 @@ export function TournamentCard({
             </Button>
           </>
         ) : (
-          // Upcoming tournaments - Full set of actions
+          // Upcoming tournaments - Consistent buttons: Edit, Groups, Code, Delete
           <>
             <Button 
               variant="ghost" 
@@ -239,79 +294,26 @@ export function TournamentCard({
               onClick={() => onManageGroups(tournament)}
               disabled={hasOnlineRegistration && !isActive}
               className="flex-1"
+              title={hasOnlineRegistration && !isActive ? 'Close registration before managing groups' : undefined}
             >
-              <Users className="w-4 h-4 mr-1" />
+              <UsersRound className="w-4 h-4 mr-1" />
               Groups
             </Button>
-            
-            {/* Registration Management Buttons - only show if online registration is enabled */}
-            {hasOnlineRegistration && isCreated && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => onOpenRegistration?.(tournament)}
-                className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
-              >
-                <Send className="w-4 h-4 mr-1" />
-                Open Registration
-              </Button>
-            )}
-            
-            {hasOnlineRegistration && isOpen && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => onCopyLink?.(tournament)}
-                className="flex-1"
-              >
-                <Link className="w-4 h-4 mr-1" />
-                Copy Link
-              </Button>
-            )}
-            
-            {hasOnlineRegistration && (isOpen || isActive) && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => onViewRegistrations?.(tournament)}
-                className="flex-1"
-              >
-                <ClipboardList className="w-4 h-4 mr-1" />
-                Registrations
-              </Button>
-            )}
-            
-            {hasGroups && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => onShowCode(tournament)}
-                className="flex-1"
-              >
-                <QrCode className="w-4 h-4 mr-1" />
-                Code
-              </Button>
-            )}
-
-            {hasGroups && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => onExport(tournament)}
-                disabled={!exportEnabled}
-                className="flex-1"
-                title={exportEnabled ? 'Export Data' : 'Export available when all scores are complete or tournament is past'}
-              >
-                <FileDown className="w-4 h-4 mr-1" />
-                Export
-              </Button>
-            )}
-
             <Button 
               variant="ghost" 
               size="sm"
+              onClick={() => onShowCode(tournament)}
+              disabled={!tournament.code}
+              className="flex-1"
+            >
+              <QrCode className="w-4 h-4 mr-1" />
+              Code
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
               onClick={() => onDelete(tournament)}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
             >
               <Trash2 className="w-4 h-4" />
             </Button>
@@ -321,4 +323,3 @@ export function TournamentCard({
     </Card>
   )
 }
-

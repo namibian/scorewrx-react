@@ -11,6 +11,7 @@ import CoursesPage from './pages/courses'
 import PlayersPage from './pages/players'
 import GameSetupPage from './pages/game-setup'
 import ScorecardPage from './pages/scorecard'
+import TournamentRegistrationPage from './pages/tournament-registration'
 import './App.css'
 
 function App() {
@@ -30,6 +31,9 @@ function App() {
             <RegisterPage />
           </GuestGuard>
         } />
+        
+        {/* Public Tournament Registration Route - No auth required */}
+        <Route path="/registration/:code" element={<TournamentRegistrationPage />} />
 
         {/* Protected Admin Routes - Desktop Layout */}
         <Route path="/dashboard" element={
