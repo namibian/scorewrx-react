@@ -258,6 +258,7 @@ export default function ScorecardPage() {
   }
 
   // Handle saving scores from the entry content
+  // Uses updateGroupScores (like Vue) for transaction-based atomic updates
   const handleSaveFromEntry = async (saveData: {
     hole: number
     scores: Record<string, {
@@ -270,48 +271,112 @@ export default function ScorecardPage() {
       sandies: number[]
       dnfArray: boolean[]
     }>
+    eventLog?: any[]
   }) => {
     if (!tournamentId || !groupId || !group) return
 
     try {
-      const { hole, scores } = saveData
+      const { hole, scores, eventLog = [] } = saveData
+      const holePar = getHolePar(hole)
+      const scoreIndex = hole - 1
 
-      // Update each player's scores
-      const updatedPlayers = group.players.map((player) => {
+      // Build updated players array with the new scores (for calculating next hole)
+      const updatedPlayers = group.players.map(player => {
         const scoreData = scores[player.id]
         if (!scoreData) return player
 
         const newScore = [...(player.score || Array(18).fill(null))]
         const newDots = [...(player.dots || Array(18).fill(0))]
+        const newDnf = [...(player.dnf || Array(18).fill(false))]
 
-        // Update arrays
-        newScore[hole - 1] = scoreData.score
-        newDots[hole - 1] = scoreData.dots
+        newScore[scoreIndex] = scoreData.score
+        newDots[scoreIndex] = scoreData.dots
+        newDnf[scoreIndex] = scoreData.dnf
 
         return {
           ...player,
           score: newScore,
           dots: newDots,
-          dnf: scoreData.dnfArray,
+          dnf: newDnf,
           greenies: scoreData.greenies,
           sandies: scoreData.sandies,
         }
       })
 
-      // Update the group with new player data
-      const updatedGroup = { ...group, players: updatedPlayers }
+      // Optimistic UI Update - update local state immediately for responsiveness
+      Object.keys(scores).forEach(playerId => {
+        const scoreData = scores[playerId]
+        const existingPlayer = localPlayerScores.get(playerId)
+        if (existingPlayer) {
+          const newScore = [...(existingPlayer.score || Array(18).fill(null))]
+          const newDots = [...(existingPlayer.dots || Array(18).fill(0))]
+          const newDnf = [...(existingPlayer.dnf || Array(18).fill(false))]
+          
+          newScore[scoreIndex] = scoreData.score
+          newDots[scoreIndex] = scoreData.dots
+          newDnf[scoreIndex] = scoreData.dnf
+          
+          setLocalPlayerScores(prev => {
+            const updated = new Map(prev)
+            updated.set(playerId, {
+              ...existingPlayer,
+              score: newScore,
+              dots: newDots,
+              dnf: newDnf,
+              greenies: scoreData.greenies,
+              sandies: scoreData.sandies,
+            })
+            return updated
+          })
+        }
+      })
 
-      // Save to Firestore via store
-      await tournamentsStore.updateGroup(tournamentId, groupId, updatedGroup)
+      // Also update the group state optimistically for immediate UI feedback
+      setGroup(prevGroup => prevGroup ? { ...prevGroup, players: updatedPlayers } : null)
+
+      // Get scorer info for event logging
+      const scorer = group.players.find(p => p.id === group.scorerId)
+
+      // Use updateGroupScores for transaction-based atomic update (matches Vue implementation)
+      await tournamentsStore.updateGroupScores(
+        tournamentId,
+        groupId,
+        hole,
+        holePar,
+        scorer,
+        group.players,
+        scores,
+        eventLog
+      )
 
       toast.success(`Hole ${hole} saved`)
 
-      // Navigate to next unscored hole
-      // Need to wait for state update, then find next hole
-      setTimeout(() => {
-        const nextHole = findNextUnscoredHole()
-        setCurrentEntryHole(nextHole)
-      }, 100)
+      // Calculate next unscored hole using the UPDATED players array (not stale state)
+      // This matches Vue's approach of using nextTick() to ensure updated state
+      const startingTee = group.startingTee || 1
+      const holesInOrder: number[] = []
+      for (let i = 0; i < 18; i++) {
+        const holeNum = ((startingTee - 1 + i) % 18) + 1
+        holesInOrder.push(holeNum)
+      }
+
+      let nextHole = startingTee
+      for (const holeNum of holesInOrder) {
+        const holeIdx = holeNum - 1
+        const allScored = updatedPlayers.every(player => {
+          const score = player.score?.[holeIdx]
+          const dnf = player.dnf?.[holeIdx]
+          return (score !== null && score !== undefined) || dnf
+        })
+
+        if (!allScored) {
+          nextHole = holeNum
+          break
+        }
+      }
+
+      // Navigate to next unscored hole immediately
+      setCurrentEntryHole(nextHole)
     } catch (error) {
       console.error('Failed to save scores:', error)
       toast.error('Failed to save scores. Please try again.')
