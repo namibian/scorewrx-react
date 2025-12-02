@@ -290,10 +290,15 @@ export default function GameSetupPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Loading...</p>
+      <div className="min-h-screen bg-white">
+        <header className="bg-emerald-700 text-white px-4 py-5">
+          <h1 className="text-center text-lg font-medium tracking-wide">Game Setup</h1>
+        </header>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-emerald-600" />
+            <p className="text-base text-neutral-600">Loading...</p>
+          </div>
         </div>
       </div>
     )
@@ -301,54 +306,58 @@ export default function GameSetupPage() {
 
   if (error) {
     return (
-      <div className="container max-w-4xl mx-auto p-4">
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+      <div className="min-h-screen bg-neutral-50">
+        <header className="bg-emerald-700 text-white px-4 py-5">
+          <h1 className="text-center text-lg font-medium tracking-wide">Game Setup</h1>
+        </header>
+        <div className="p-4 max-w-lg mx-auto mt-6">
+          <Alert variant="destructive" className="bg-red-50 border-red-200">
+            <AlertDescription className="text-red-700">{error}</AlertDescription>
+          </Alert>
+        </div>
       </div>
     )
   }
 
   const validation = validateGameSetup()
+  const groupNumber = tournamentsStore.tournaments
+    .find((t) => t.id === tournamentId)
+    ?.groups?.find((g) => g.id === groupId)?.number
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-primary text-primary-foreground p-4 sticky top-0 z-10">
-        <h1 className="text-center text-xl font-semibold">
-          Game Setup - Group{' '}
-          {
-            tournamentsStore.tournaments
-              .find((t) => t.id === tournamentId)
-              ?.groups?.find((g) => g.id === groupId)?.number
-          }
+    <div className="min-h-screen bg-neutral-50">
+      {/* Clean Header */}
+      <header className="bg-emerald-700 text-white px-4 py-5 sticky top-0 z-10">
+        <h1 className="text-center text-lg font-medium tracking-wide">
+          Game Setup — Group {groupNumber}
         </h1>
       </header>
 
-      {/* Main Content */}
-      <div className="container max-w-4xl mx-auto p-4 space-y-6 pb-24">
-        {saving && (
-          <div className="fixed inset-0 bg-background/80 flex items-center justify-center z-50">
-            <div className="text-center bg-card p-6 rounded-lg shadow-lg">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-              <p className="text-sm">Saving game settings...</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Please wait while we save your settings
-              </p>
-            </div>
+      {/* Saving Overlay */}
+      {saving && (
+        <div className="fixed inset-0 bg-white/95 flex items-center justify-center z-50">
+          <div className="text-center px-6">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-emerald-600" />
+            <p className="text-lg font-medium text-neutral-900">Saving settings...</p>
+            <p className="text-sm text-neutral-500 mt-1">Please wait</p>
           </div>
-        )}
+        </div>
+      )}
 
+      {/* Main Content - Clean cards */}
+      <div className="px-4 py-6 max-w-lg mx-auto space-y-4 pb-24">
         {/* Step 1: Pool Selection */}
         {currentStep >= 1 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>1. Pool Selection</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4 text-sm text-muted-foreground">
-                Select skins pool participation for each player
-              </div>
+          <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-neutral-100 bg-neutral-50/50">
+              <h3 className="text-base font-semibold text-neutral-900">
+                1. Pool Selection
+              </h3>
+              <p className="text-sm text-neutral-500 mt-0.5">
+                Select skins pool for each player
+              </p>
+            </div>
+            <div className="p-5">
               <PlayerList
                 players={players}
                 skinsPoolOptions={SKINS_POOL_OPTIONS}
@@ -356,26 +365,31 @@ export default function GameSetupPage() {
                 onUpdatePlayer={updatePlayer}
               />
               {currentStep === 1 && (
-                <div className="mt-4">
-                  <Button onClick={() => setCurrentStep(2)} className="w-full" size="lg">
+                <div className="mt-5">
+                  <Button 
+                    onClick={() => setCurrentStep(2)} 
+                    className="w-full h-14 text-base font-medium bg-emerald-600 hover:bg-emerald-700"
+                  >
                     Continue
                   </Button>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Step 2: Cart Assignments */}
         {currentStep >= 2 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>2. Cart Assignments</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4 text-sm text-muted-foreground">
+          <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-neutral-100 bg-neutral-50/50">
+              <h3 className="text-base font-semibold text-neutral-900">
+                2. Cart Assignments
+              </h3>
+              <p className="text-sm text-neutral-500 mt-0.5">
                 Assign players to carts
-              </div>
+              </p>
+            </div>
+            <div className="p-5">
               {players.length === 4 && games.sixes.enabled ? (
                 <CartAssignments
                   value={cartPositions}
@@ -384,42 +398,45 @@ export default function GameSetupPage() {
                   onChange={setCartPositions}
                 />
               ) : (
-                <Alert>
-                  <AlertDescription>
-                    Cart assignments are only needed for 4-player Sixes games
-                  </AlertDescription>
-                </Alert>
+                <div className="p-4 bg-neutral-50 rounded-lg text-center">
+                  <p className="text-sm text-neutral-600">
+                    Cart assignments only needed for 4-player Sixes games
+                  </p>
+                </div>
               )}
               {currentStep === 2 && (
-                <div className="mt-4 flex gap-2">
+                <div className="mt-5 flex gap-3">
                   <Button
                     variant="outline"
                     onClick={() => setCurrentStep(1)}
-                    className="flex-1"
-                    size="lg"
+                    className="flex-1 h-14 text-base font-medium border-neutral-300"
                   >
                     Back
                   </Button>
-                  <Button onClick={() => setCurrentStep(3)} className="flex-1" size="lg">
+                  <Button 
+                    onClick={() => setCurrentStep(3)} 
+                    className="flex-1 h-14 text-base font-medium bg-emerald-600 hover:bg-emerald-700"
+                  >
                     Continue
                   </Button>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Step 3: Game Selection */}
         {currentStep >= 3 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>3. Game Selection</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4 text-sm text-muted-foreground">
-                Select games and configure settings
-              </div>
-
+          <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-neutral-100 bg-neutral-50/50">
+              <h3 className="text-base font-semibold text-neutral-900">
+                3. Game Selection
+              </h3>
+              <p className="text-sm text-neutral-500 mt-0.5">
+                Configure your games
+              </p>
+            </div>
+            <div className="p-5 space-y-4">
               {/* Sixes Game */}
               <SixesSetup
                 value={games.sixes}
@@ -458,38 +475,36 @@ export default function GameSetupPage() {
               />
 
               {!validation.isValid && (
-                <Alert variant="destructive" className="mt-4">
-                  <AlertDescription>{validation.error}</AlertDescription>
-                </Alert>
+                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                  <p className="text-sm text-red-700 font-medium">{validation.error}</p>
+                </div>
               )}
 
-              <div className="mt-6 flex gap-2">
+              <div className="pt-2 flex gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setCurrentStep(2)}
-                  className="flex-1"
-                  size="lg"
+                  className="flex-1 h-14 text-base font-medium border-neutral-300"
                 >
                   Back
                 </Button>
                 <Button
                   onClick={saveGameSetup}
                   disabled={!validation.isValid || saving}
-                  className="flex-1"
-                  size="lg"
+                  className="flex-1 h-14 text-base font-medium bg-emerald-600 hover:bg-emerald-700 disabled:bg-neutral-300"
                 >
                   {saving ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       Saving...
                     </>
                   ) : (
-                    'Save & Continue'
+                    'Save & Start'
                   )}
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
       </div>
     </div>

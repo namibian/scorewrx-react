@@ -108,7 +108,8 @@ export default function PlayerLandingPage() {
     }
 
     fetchData()
-  }, [navigate, tournamentsStore, playersStore])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, debugParam])
 
   // Build list of tournament players with group info
   const tournamentPlayers: TournamentPlayer[] = tournament?.groups?.flatMap((group) =>
@@ -408,80 +409,86 @@ export default function PlayerLandingPage() {
     if (selectedPlayer && (isSelectedPlayerScorer || isScorer)) {
       initializeEditableGroup()
     }
-  }, [selectedPlayer, isSelectedPlayerScorer, isScorer])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPlayer?.id, selectedPlayer?.groupId, isSelectedPlayerScorer, isScorer])
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-lg text-muted-foreground">Loading tournament data...</p>
+      <div className="min-h-screen bg-white">
+        {/* Clean Header */}
+        <header className="bg-emerald-700 text-white px-4 py-5">
+          <h1 className="text-center text-lg font-medium tracking-wide">Game Setup</h1>
+        </header>
+        <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-emerald-600" />
+            <p className="text-base text-neutral-600">Loading tournament...</p>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-primary text-primary-foreground p-4 sticky top-0 z-10 shadow-md">
-        <h1 className="text-center text-xl font-semibold">
+    <div className="min-h-screen bg-neutral-50">
+      {/* Clean Header - High contrast for outdoor visibility */}
+      <header className="bg-emerald-700 text-white px-4 py-5 sticky top-0 z-10">
+        <h1 className="text-center text-lg font-medium tracking-wide">
           {selectedPlayer ? `Group ${selectedGroup?.number || ''}` : 'Game Setup'}
         </h1>
       </header>
 
-      {/* Loading Overlay */}
-      {(loading || processing) && (
-        <div className="fixed inset-0 bg-background/80 flex items-center justify-center z-50">
-          <div className="text-center">
-            <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-lg font-semibold text-primary">
-              {loading ? 'Loading tournament data...' : 'Setting up your game...'}
-            </p>
-            {processing && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Please wait while we prepare your game
-              </p>
-            )}
+      {/* Processing Overlay */}
+      {processing && (
+        <div className="fixed inset-0 bg-white/95 flex items-center justify-center z-50">
+          <div className="text-center px-6">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-emerald-600" />
+            <p className="text-lg font-medium text-neutral-900">Setting up your game...</p>
+            <p className="text-sm text-neutral-500 mt-1">Please wait</p>
           </div>
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="container max-w-2xl mx-auto p-4 pt-6 space-y-4">
-        {/* Tournament Info Card */}
-        <Card>
-          <CardContent className="pt-6">
-            <h2 className="text-xl font-semibold mb-1">{tournament?.name}</h2>
-            <p className="text-base text-muted-foreground">{formatTournamentDate(tournament?.date)}</p>
-            <p className="text-sm text-muted-foreground">{tournament?.courseName}</p>
-          </CardContent>
-        </Card>
+      {/* Main Content - Clean, spacious layout */}
+      <div className="px-4 py-6 max-w-lg mx-auto space-y-4">
+        {/* Tournament Info - Simple, readable */}
+        <div className="bg-white rounded-xl p-5 border border-neutral-200">
+          <h2 className="text-xl font-semibold text-neutral-900">{tournament?.name}</h2>
+          <p className="text-base text-neutral-600 mt-1">{formatTournamentDate(tournament?.date)}</p>
+          <p className="text-sm text-neutral-500 mt-0.5">{tournament?.courseName}</p>
+        </div>
 
-        {/* Player Selection Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
+        {/* Player Selection - Clean card */}
+        <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+          {/* Section Header */}
+          <div className="px-5 py-4 border-b border-neutral-100 bg-neutral-50/50">
+            <h3 className="text-base font-semibold text-neutral-900 flex items-center gap-2">
+              <Users className="h-5 w-5 text-emerald-600" />
               Player Selection
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Player Dropdown */}
+            </h3>
+          </div>
+          
+          <div className="p-5 space-y-5">
+            {/* Player Dropdown - Large touch target */}
             <div>
-              <Label htmlFor="player-select">Select Your Name</Label>
+              <Label htmlFor="player-select" className="text-sm font-medium text-neutral-700 mb-2 block">
+                Select Your Name
+              </Label>
               <Select
                 value={selectedPlayer?.id || ''}
                 onValueChange={handlePlayerSelect}
                 disabled={processing}
               >
-                <SelectTrigger id="player-select" className="w-full mt-1.5">
-                  <SelectValue placeholder="Select your name" />
+                <SelectTrigger 
+                  id="player-select" 
+                  className="w-full h-12 text-base bg-white border-neutral-300 focus:border-emerald-500 focus:ring-emerald-500"
+                >
+                  <SelectValue placeholder="Tap to select your name" />
                 </SelectTrigger>
                 <SelectContent>
                   {tournamentPlayers.map((player) => (
-                    <SelectItem key={player.id} value={player.id}>
-                      {player.lastName}, {player.firstName} (Group {player.groupNumber})
+                    <SelectItem key={player.id} value={player.id} className="py-3 text-base">
+                      {player.lastName}, {player.firstName} — Group {player.groupNumber}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -491,40 +498,46 @@ export default function PlayerLandingPage() {
             {/* Selected Player Details */}
             {selectedPlayer && (
               <>
-                <Separator />
+                <div className="h-px bg-neutral-200" />
 
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">Your Group</h3>
+                  <h4 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide mb-3">
+                    Your Group
+                  </h4>
 
                   {/* If scorer: Show editable group */}
                   {(isSelectedPlayerScorer || isScorer) ? (
                     <div className="space-y-4">
                       {/* Editable Players List */}
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {editableGroupPlayers.map((player) => (
-                          <div key={player.id} className="flex items-center gap-3">
-                            <div className="flex-1">
-                              <p className="font-medium">{player.lastName}, {player.firstName}</p>
+                          <div 
+                            key={player.id} 
+                            className="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-neutral-900 truncate">
+                                {player.firstName} {player.lastName}
+                              </p>
                             </div>
-                            <div className="w-20">
+                            <div className="w-16">
                               <Input
                                 type="number"
                                 value={player.tournamentHandicap || 0}
                                 onChange={(e) => handleHandicapChange(player.id, Number(e.target.value))}
                                 min={0}
                                 max={36}
-                                className="text-center"
-                                placeholder="HCP"
+                                className="text-center h-10 text-base font-medium bg-white border-neutral-300"
                               />
                             </div>
                             {player.id !== selectedPlayer.id && (
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="text-destructive hover:text-destructive"
+                                className="h-10 w-10 text-red-500 hover:text-red-600 hover:bg-red-50 shrink-0"
                                 onClick={() => removePlayerFromGroup(player.id)}
                               >
-                                <Minus className="h-4 w-4" />
+                                <Minus className="h-5 w-5" />
                               </Button>
                             )}
                           </div>
@@ -537,19 +550,21 @@ export default function PlayerLandingPage() {
                           const player = availablePlayersForGroup().find((p) => p.id === id)
                           if (player) addPlayerToGroup(player)
                         }}>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Add player to group" />
+                          <SelectTrigger className="w-full h-12 text-base bg-white border-dashed border-neutral-300 text-neutral-500">
+                            <SelectValue placeholder="+ Add player to group" />
                           </SelectTrigger>
                           <SelectContent>
                             {availablePlayersForGroup().map((player) => (
-                              <SelectItem key={player.id} value={player.id}>
+                              <SelectItem key={player.id} value={player.id} className="py-3 text-base">
                                 {player.lastName}, {player.firstName}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       ) : (
-                        <p className="text-sm text-muted-foreground">Maximum of 4 players reached</p>
+                        <p className="text-sm text-neutral-500 text-center py-2">
+                          Maximum 4 players per group
+                        </p>
                       )}
 
                       {/* Save Group Changes */}
@@ -557,8 +572,7 @@ export default function PlayerLandingPage() {
                         <Button
                           onClick={saveGroupChanges}
                           disabled={savingGroup}
-                          className="w-full"
-                          size="lg"
+                          className="w-full h-12 text-base font-medium bg-emerald-600 hover:bg-emerald-700"
                         >
                           {savingGroup ? (
                             <>
@@ -566,91 +580,94 @@ export default function PlayerLandingPage() {
                               Saving...
                             </>
                           ) : (
-                            'Save Group Changes'
+                            'Save Changes'
                           )}
                         </Button>
                       )}
                     </div>
                   ) : (
                     /* If NOT scorer: Just show player list */
-                    <div className="space-y-4">
-                      <p className="text-base">{getGroupPlayerNames(selectedPlayer.groupId)}</p>
+                    <div className="space-y-5">
+                      {/* Group Players - Clean list */}
+                      <div className="bg-neutral-50 rounded-lg p-4">
+                        <p className="text-base text-neutral-700 leading-relaxed">
+                          {getGroupPlayerNames(selectedPlayer.groupId)}
+                        </p>
+                      </div>
 
-                      <Separator />
+                      <div className="h-px bg-neutral-200" />
 
                       {/* Scoring Preference */}
                       <div>
-                        <h4 className="text-lg font-semibold mb-2">Scoring Preference</h4>
+                        <h4 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide mb-3">
+                          Your Role
+                        </h4>
                         
                         {!hasGroupScorer(selectedPlayer.groupId) ? (
-                          <div className="space-y-2">
-                            <div className="flex items-center space-x-2">
-                              <Checkbox
-                                id="scorer-checkbox"
-                                checked={isScorer}
-                                onCheckedChange={(checked) => setIsScorer(checked as boolean)}
-                                disabled={processing}
-                              />
-                              <Label htmlFor="scorer-checkbox" className="text-base">
-                                I will be the scorer for my group
-                              </Label>
+                          <label className="flex items-start gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200 cursor-pointer">
+                            <Checkbox
+                              id="scorer-checkbox"
+                              checked={isScorer}
+                              onCheckedChange={(checked) => setIsScorer(checked as boolean)}
+                              disabled={processing}
+                              className="mt-0.5 h-5 w-5 border-emerald-400 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+                            />
+                            <div>
+                              <span className="text-base font-medium text-neutral-900 block">
+                                I'll be the scorer
+                              </span>
+                              <span className="text-sm text-neutral-600 mt-0.5 block">
+                                Enter scores for your group
+                              </span>
                             </div>
-                            {isScorer && (
-                              <p className="text-sm text-muted-foreground ml-6">
-                                You will be responsible for entering scores for your group
-                              </p>
-                            )}
-                          </div>
+                          </label>
                         ) : (
                           <div className="space-y-4">
-                            <p className="text-orange-600 font-medium">
-                              {getGroupScorer(selectedPlayer.groupId)} is currently the scorer for your group
-                            </p>
+                            <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                              <p className="text-base text-amber-800 font-medium">
+                                {getGroupScorer(selectedPlayer.groupId)} is scoring
+                              </p>
+                            </div>
                             <Button
                               onClick={() => setWillTakeOverScoring(true)}
                               disabled={processing}
-                              className="w-full"
-                              size="lg"
+                              variant="outline"
+                              className="w-full h-12 text-base font-medium border-neutral-300 hover:bg-neutral-50"
                             >
-                              Take Over as Scorer
+                              Take Over Scoring
                             </Button>
 
                             {/* Verifier Option */}
-                            <Separator />
-                            <h4 className="text-lg font-semibold">Verification Role</h4>
+                            <div className="h-px bg-neutral-200" />
                             
                             {!hasGroupVerifier(selectedPlayer.groupId) ? (
-                              <div className="space-y-2">
-                                <div className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id="verifier-checkbox"
-                                    checked={isVerifier}
-                                    onCheckedChange={(checked) => setIsVerifier(checked as boolean)}
-                                    disabled={processing || selectedPlayer.id === selectedGroup?.scorerId}
-                                  />
-                                  <Label htmlFor="verifier-checkbox" className="text-base">
-                                    I will verify scores for my group
-                                  </Label>
+                              <label className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200 cursor-pointer">
+                                <Checkbox
+                                  id="verifier-checkbox"
+                                  checked={isVerifier}
+                                  onCheckedChange={(checked) => setIsVerifier(checked as boolean)}
+                                  disabled={processing || selectedPlayer.id === selectedGroup?.scorerId}
+                                  className="mt-0.5 h-5 w-5 border-blue-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                />
+                                <div>
+                                  <span className="text-base font-medium text-neutral-900 block">
+                                    I'll verify scores
+                                  </span>
+                                  <span className="text-sm text-neutral-600 mt-0.5 block">
+                                    Double-check score entries
+                                  </span>
                                 </div>
-                                {isVerifier && (
-                                  <p className="text-sm text-muted-foreground ml-6">
-                                    You will independently verify all score entries
-                                  </p>
-                                )}
-                                {selectedPlayer.id === selectedGroup?.scorerId && (
-                                  <p className="text-sm text-orange-600 ml-6">
-                                    Scorer cannot also be the verifier
-                                  </p>
-                                )}
-                              </div>
+                              </label>
                             ) : isSelectedPlayerVerifier ? (
-                              <div className="space-y-2">
-                                <p className="text-green-600 font-medium">
-                                  You are currently the verifier for this group
-                                </p>
+                              <div className="space-y-3">
+                                <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                                  <p className="text-base text-emerald-800 font-medium">
+                                    You're the verifier ✓
+                                  </p>
+                                </div>
                                 <Button
                                   variant="outline"
-                                  className="w-full text-destructive border-destructive hover:bg-destructive/10"
+                                  className="w-full h-12 text-base text-red-600 border-red-200 hover:bg-red-50"
                                   onClick={async () => {
                                     try {
                                       setProcessing(true)
@@ -669,15 +686,16 @@ export default function PlayerLandingPage() {
                                     }
                                   }}
                                   disabled={processing}
-                                  size="lg"
                                 >
                                   Remove Verifier Role
                                 </Button>
                               </div>
                             ) : (
-                              <p className="text-sm text-muted-foreground">
-                                {getGroupVerifier(selectedPlayer.groupId)} is currently the verifier
-                              </p>
+                              <div className="p-4 bg-neutral-50 rounded-lg">
+                                <p className="text-sm text-neutral-600">
+                                  {getGroupVerifier(selectedPlayer.groupId)} is verifying
+                                </p>
+                              </div>
                             )}
                           </div>
                         )}
@@ -687,75 +705,83 @@ export default function PlayerLandingPage() {
                 </div>
               </>
             )}
+          </div>
 
-            {/* Action Buttons */}
-            {selectedPlayer && (
-              <div className="flex gap-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={resetSelection}
-                  className="flex-1"
-                  size="lg"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={startScoring}
-                  disabled={!canContinue}
-                  className="flex-1"
-                  size="lg"
-                >
-                  {processing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Loading...
-                    </>
-                  ) : (
-                    'Continue'
-                  )}
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          {/* Action Buttons - Large, clear */}
+          {selectedPlayer && (
+            <div className="px-5 pb-5 pt-2 flex gap-3">
+              <Button
+                variant="outline"
+                onClick={resetSelection}
+                className="flex-1 h-14 text-base font-medium border-neutral-300 text-neutral-700 hover:bg-neutral-100"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={startScoring}
+                disabled={!canContinue}
+                className="flex-1 h-14 text-base font-medium bg-emerald-600 hover:bg-emerald-700 disabled:bg-neutral-300"
+              >
+                {processing ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  'Continue'
+                )}
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Take Over Scorer Dialog */}
+      {/* Take Over Scorer Dialog - Clean, focused */}
       <Dialog open={willTakeOverScoring} onOpenChange={setWillTakeOverScoring}>
-        <DialogContent>
+        <DialogContent className="bg-white max-w-sm mx-4 rounded-xl">
           <DialogHeader>
-            <DialogTitle>Take Over Scoring</DialogTitle>
-            <DialogDescription>
-              You are about to take over scoring duties from {selectedPlayer && getGroupScorer(selectedPlayer.groupId)}.
+            <DialogTitle className="text-lg font-semibold text-neutral-900">
+              Take Over Scoring
+            </DialogTitle>
+            <DialogDescription className="text-base text-neutral-600 mt-2">
+              You'll take over from {selectedPlayer && getGroupScorer(selectedPlayer.groupId)}.
             </DialogDescription>
           </DialogHeader>
           
           <div className="py-4">
-            <div className="flex items-center space-x-2">
+            <label className="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg cursor-pointer">
               <Checkbox
                 id="remove-scorer"
                 checked={removeCurrentScorer}
                 onCheckedChange={(checked) => setRemoveCurrentScorer(checked as boolean)}
+                className="h-5 w-5 border-neutral-400"
               />
-              <Label htmlFor="remove-scorer">Remove current scorer from group</Label>
-            </div>
+              <span className="text-base text-neutral-700">
+                Remove them from group
+              </span>
+            </label>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-3 sm:gap-3">
             <Button
               variant="outline"
               onClick={() => {
                 setWillTakeOverScoring(false)
                 setRemoveCurrentScorer(false)
               }}
+              className="flex-1 h-12 text-base border-neutral-300"
             >
               Cancel
             </Button>
-            <Button onClick={confirmTakeOver} disabled={processing}>
+            <Button 
+              onClick={confirmTakeOver} 
+              disabled={processing}
+              className="flex-1 h-12 text-base bg-emerald-600 hover:bg-emerald-700"
+            >
               {processing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Confirming...
+                  Saving...
                 </>
               ) : (
                 'Confirm'

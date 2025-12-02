@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect, KeyboardEvent, ClipboardEvent, ChangeEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Trophy, Info, Loader2 } from 'lucide-react'
+import { Info, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTournamentsStore } from '@/stores/tournaments-store'
 import { setTournamentSession } from '@/hooks/use-tournament-session'
 import { validateTournamentCode } from '@/lib/utils/tournament-code'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { Logo } from '@/components/common/logo'
 
 export default function TournamentCodeEntryPage() {
   const navigate = useNavigate()
@@ -180,29 +181,31 @@ export default function TournamentCodeEntryPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-700">
-      {/* Header */}
-      <header className="bg-primary text-primary-foreground p-4 shadow-lg">
-        <h1 className="text-center text-xl font-semibold">ScoreWRX™</h1>
+    <div className="min-h-screen flex flex-col bg-neutral-50">
+      {/* Clean Header - High contrast for outdoor visibility */}
+      <header className="bg-emerald-700 text-white px-4 py-5">
+        <h1 className="text-center text-lg font-medium tracking-wide">ScoreWRX™</h1>
       </header>
 
-      {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-5">
-        <div className="bg-white rounded-2xl p-8 sm:p-10 max-w-[450px] w-full shadow-2xl">
-          {/* Logo/Icon */}
-          <div className="text-center mb-8">
-            <Trophy className="h-20 w-20 mx-auto text-primary" strokeWidth={1.5} />
+      {/* Main Content - Centered, clean */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl p-6 sm:p-8 w-full max-w-sm border border-neutral-200">
+          {/* Logo */}
+          <div className="text-center mb-6">
+            <Logo size={64} className="mx-auto" />
           </div>
 
-          {/* Title and Instructions */}
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold mb-2">Enter Tournament Code</h2>
-            <p className="text-sm text-muted-foreground">
-              Enter the 6-digit code provided by your tournament organizer
+          {/* Title and Instructions - Clear hierarchy */}
+          <div className="text-center mb-8">
+            <h2 className="text-xl font-semibold text-neutral-900 mb-2">
+              Enter Tournament Code
+            </h2>
+            <p className="text-sm text-neutral-600">
+              6-digit code from your organizer
             </p>
           </div>
 
-          {/* Code Input Boxes */}
+          {/* Code Input Boxes - Large, easy to tap */}
           <div className="mb-6">
             <div className="flex gap-2 sm:gap-3 justify-center items-center">
               {[0, 1, 2, 3, 4, 5].map((index) => (
@@ -218,11 +221,11 @@ export default function TournamentCodeEntryPage() {
                   onPaste={handlePaste}
                   disabled={loading}
                   className={cn(
-                    "w-11 h-14 sm:w-12 sm:h-16 text-2xl sm:text-3xl font-semibold text-center",
-                    "border-2 rounded-xl outline-none transition-all duration-200",
-                    "bg-gray-50 text-primary caret-primary",
-                    "focus:border-primary focus:bg-white focus:shadow-lg focus:shadow-primary/10 focus:scale-105",
-                    errorMessage && "border-red-500 bg-red-50 animate-shake",
+                    "w-11 h-14 sm:w-12 sm:h-16 text-2xl font-bold text-center",
+                    "border-2 rounded-lg outline-none transition-all duration-150",
+                    "bg-neutral-50 text-neutral-900",
+                    "focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20",
+                    errorMessage && "border-red-400 bg-red-50 animate-shake",
                     loading && "opacity-50 cursor-not-allowed"
                   )}
                 />
@@ -231,23 +234,23 @@ export default function TournamentCodeEntryPage() {
             
             {/* Error Message */}
             {errorMessage && (
-              <div className="text-red-500 text-sm text-center mt-3 animate-fadeIn">
+              <div className="text-red-600 text-sm text-center mt-4 font-medium animate-fadeIn">
                 {errorMessage}
               </div>
             )}
           </div>
 
-          {/* Continue Button */}
+          {/* Continue Button - Large touch target */}
           <Button
             onClick={() => validateAndContinue()}
             disabled={!canContinue}
-            className="w-full py-6 text-lg"
+            className="w-full h-14 text-base font-medium bg-emerald-600 hover:bg-emerald-700 disabled:bg-neutral-300 disabled:text-neutral-500"
             size="lg"
           >
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Validating...
+                Checking...
               </>
             ) : (
               'Continue'
@@ -255,17 +258,17 @@ export default function TournamentCodeEntryPage() {
           </Button>
 
           {/* Help Text */}
-          <div className="text-center mt-8">
-            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+          <div className="text-center mt-6">
+            <p className="text-sm text-neutral-500 flex items-center justify-center gap-1.5">
               <Info className="h-4 w-4" />
-              Don't have a code? Contact your tournament organizer.
+              No code? Ask your organizer.
             </p>
           </div>
 
           {/* Version Display */}
           <div className="text-center mt-4">
-            <p className="text-sm text-muted-foreground font-medium">
-              Version 1.0.0
+            <p className="text-xs text-neutral-400">
+              v1.0.0
             </p>
           </div>
         </div>
