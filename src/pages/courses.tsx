@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useCoursesStore } from '@/stores/courses-store'
+import { useAuthStore } from '@/stores/auth-store'
 import { Course } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,15 +10,19 @@ import { ConfirmDialog } from '@/components/common/confirm-dialog'
 import { toast } from 'sonner'
 
 export default function CoursesPage() {
+  const { userProfile } = useAuthStore()
   const { courses, loading, error, fetchCourses, deleteCourse } = useCoursesStore()
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; course: Course | null }>({ 
     open: false, 
     course: null 
   })
 
+  // Fetch data when userProfile becomes available (has affiliation)
   useEffect(() => {
-    fetchCourses()
-  }, [fetchCourses])
+    if (userProfile?.affiliation) {
+      fetchCourses()
+    }
+  }, [userProfile?.affiliation, fetchCourses])
 
   const handleEdit = (course: Course) => {
     console.log('Edit course:', course)

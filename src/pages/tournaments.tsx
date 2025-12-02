@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTournamentsStore } from '@/stores/tournaments-store'
 import { useCoursesStore } from '@/stores/courses-store'
+import { useAuthStore } from '@/stores/auth-store'
 import { Tournament } from '@/types'
 import { TournamentCard } from '@/components/tournaments/tournament-card'
 import { CreateTournamentDialog } from '@/components/tournaments/create-tournament-dialog'
@@ -12,6 +13,7 @@ import { exportTournamentToCSV, canExportTournament } from '@/lib/export-utils'
 import { toast } from 'sonner'
 
 export default function TournamentsPage() {
+  const { userProfile } = useAuthStore()
   const { 
     tournaments, 
     loading, 
@@ -36,10 +38,13 @@ export default function TournamentsPage() {
   })
   const [deleteAllConfirm, setDeleteAllConfirm] = useState(false)
 
+  // Fetch data when userProfile becomes available (has affiliation)
   useEffect(() => {
-    fetchTournaments()
-    fetchCourses()
-  }, [fetchTournaments, fetchCourses])
+    if (userProfile?.affiliation) {
+      fetchTournaments()
+      fetchCourses()
+    }
+  }, [userProfile?.affiliation, fetchTournaments, fetchCourses])
 
   // Automatically archive past active tournaments
   useEffect(() => {

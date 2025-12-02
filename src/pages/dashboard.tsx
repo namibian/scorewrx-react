@@ -15,11 +15,14 @@ export default function Dashboard() {
   const { courses, fetchCourses } = useCoursesStore()
   const { players, fetchPlayers } = usePlayersStore()
 
+  // Fetch data when userProfile becomes available (has affiliation)
   useEffect(() => {
-    fetchTournaments()
-    fetchCourses()
-    fetchPlayers()
-  }, [fetchTournaments, fetchCourses, fetchPlayers])
+    if (userProfile?.affiliation) {
+      fetchTournaments()
+      fetchCourses()
+      fetchPlayers()
+    }
+  }, [userProfile?.affiliation, fetchTournaments, fetchCourses, fetchPlayers])
 
   const stats = [
     {

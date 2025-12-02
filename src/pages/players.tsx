@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from 'react'
 import { usePlayersStore } from '@/stores/players-store'
+import { useAuthStore } from '@/stores/auth-store'
 import { Player } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -44,6 +45,7 @@ import { toast } from 'sonner'
 import Papa from 'papaparse'
 
 export default function PlayersPage() {
+  const { userProfile } = useAuthStore()
   const { players, loading, error, fetchPlayers, deletePlayer, createPlayer, updatePlayer } = usePlayersStore()
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([])
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; player: Player | null }>({ 
@@ -64,9 +66,12 @@ export default function PlayersPage() {
     direction: 'asc' | 'desc'
   } | null>({ key: 'name', direction: 'asc' }) // Default sort by name ascending
 
+  // Fetch data when userProfile becomes available (has affiliation)
   useEffect(() => {
-    fetchPlayers()
-  }, [fetchPlayers])
+    if (userProfile?.affiliation) {
+      fetchPlayers()
+    }
+  }, [userProfile?.affiliation, fetchPlayers])
 
   // Sorting and filtering logic
   const filteredAndSortedPlayers = useMemo(() => {
