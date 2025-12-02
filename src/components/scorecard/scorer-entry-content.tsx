@@ -572,7 +572,7 @@ export function ScorerEntryContent({
                 <div className={cn("p-3", rowBgClass)}>
                   {/* Row 1: Player Name + Toggles */}
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-neutral-900">{shortName}</span>
+                    <span className="font-semibold text-xs text-neutral-900 whitespace-nowrap">{shortName}</span>
                     {/* Toggles on the right */}
                     <div className="flex items-center gap-2">
                       {/* Greenie Toggle (Par 3 only) */}
@@ -588,7 +588,7 @@ export function ScorerEntryContent({
                             (playerState.dnf || (playerState.sandy && holePar === 3)) && "opacity-50 cursor-not-allowed"
                           )}
                         >
-                          GIR
+                          Greenie
                         </button>
                       )}
 
