@@ -22,44 +22,54 @@ export function PlayerList({
   disabled = false,
   onUpdatePlayer,
 }: PlayerListProps) {
+  // Generate short name if not available: "Chris O" format (firstName + lastInitial)
+  const getDisplayName = (player: Player) => {
+    if (player.shortName) return player.shortName
+    if (player.firstName && player.lastName) {
+      return `${player.firstName} ${player.lastName.charAt(0)}`
+    }
+    return player.firstName || player.lastName || 'Unknown'
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Players</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {players.map((player) => (
-          <div key={player.id} className="flex items-center gap-4">
-            <div className="text-sm font-medium min-w-[120px] max-w-[120px] truncate">
-              {player.shortName} ({player.tournamentHandicap || 0})
-            </div>
-            <div className="flex-1">
-              <Label htmlFor={`player-${player.id}-skins`} className="sr-only">
-                Skins Pool
-              </Label>
-              <Select
-                value={player.skinsPool || 'None'}
-                onValueChange={(value) =>
-                  onUpdatePlayer(player.id, 'skinsPool', value)
-                }
-                disabled={disabled}
-              >
-                <SelectTrigger id={`player-${player.id}-skins`}>
-                  <SelectValue placeholder="Skins Pool" />
-                </SelectTrigger>
-                <SelectContent>
-                  {skinsPoolOptions.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+    <div className="space-y-3">
+      {players.map((player) => (
+        <div 
+          key={player.id} 
+          className="grid grid-cols-[1fr_120px] gap-3 items-center"
+        >
+          <div className="text-base font-medium text-neutral-900 truncate text-left">
+            {getDisplayName(player)} ({player.tournamentHandicap || 0})
           </div>
-        ))}
-      </CardContent>
-    </Card>
+          <div>
+            <Label htmlFor={`player-${player.id}-skins`} className="sr-only">
+              Skins Pool
+            </Label>
+            <Select
+              value={player.skinsPool || 'None'}
+              onValueChange={(value) =>
+                onUpdatePlayer(player.id, 'skinsPool', value)
+              }
+              disabled={disabled}
+            >
+              <SelectTrigger 
+                id={`player-${player.id}-skins`}
+                className="w-full h-10 text-sm"
+              >
+                <SelectValue placeholder="Pool" />
+              </SelectTrigger>
+              <SelectContent>
+                {skinsPoolOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }
 

@@ -23,6 +23,15 @@ export function DotsSetup({
   const canPlayDots = players.length >= 2
   const hasCourseData = courseData?.teeboxes?.[0]?.holes?.length === 18
 
+  // Generate display name: "Chris O" format
+  const getDisplayName = (player: Player) => {
+    if (player.shortName) return player.shortName
+    if (player.firstName && player.lastName) {
+      return `${player.firstName} ${player.lastName.charAt(0)}`
+    }
+    return player.firstName || player.lastName || 'Unknown'
+  }
+
   const toggleEnabled = () => {
     onChange({
       ...value,
@@ -79,30 +88,33 @@ export function DotsSetup({
   }
 
   return (
-    <div className="mb-6">
-      <div className="flex items-center space-x-2 mb-2">
+    <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-200">
+      <div className="flex items-center space-x-3">
         <Checkbox
           id="dots-enabled"
           checked={value.enabled}
           onCheckedChange={toggleEnabled}
           disabled={!canPlayDots || !hasCourseData || saving}
+          className="h-5 w-5"
         />
-        <Label htmlFor="dots-enabled" className="text-lg font-medium cursor-pointer">
+        <Label htmlFor="dots-enabled" className="text-base font-semibold text-neutral-900 cursor-pointer">
           Dots
         </Label>
       </div>
 
       {getToggleHint() && (
-        <Alert className="mb-2">
+        <Alert className="mt-3">
           <AlertDescription className="text-sm">{getToggleHint()}</AlertDescription>
         </Alert>
       )}
 
       {value.enabled && (
-        <div className="pl-6 mt-4 space-y-4">
+        <div className="mt-4 space-y-5">
           {/* Amount per Dot */}
-          <div>
-            <Label htmlFor="dots-amount">$ Amount per Dot</Label>
+          <div className="grid grid-cols-[140px_1fr] gap-3 items-center">
+            <Label htmlFor="dots-amount" className="text-left text-sm font-medium text-neutral-700">
+              $ Amount per Dot
+            </Label>
             <Input
               id="dots-amount"
               type="number"
@@ -111,12 +123,12 @@ export function DotsSetup({
               value={value.amountPerDot}
               onChange={(e) => updateField('amountPerDot', e.target.value)}
               disabled={saving}
-              className="mt-1"
+              className="h-11 text-base"
             />
           </div>
 
           {/* Use Differential Handicaps */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <Checkbox
               id="dots-differential"
               checked={value.useDifferentialHandicap}
@@ -124,36 +136,39 @@ export function DotsSetup({
                 updateField('useDifferentialHandicap', checked)
               }
               disabled={saving}
+              className="h-5 w-5"
             />
-            <Label htmlFor="dots-differential" className="cursor-pointer">
+            <Label htmlFor="dots-differential" className="cursor-pointer text-sm font-medium text-neutral-700">
               Use Differential Handicaps
             </Label>
           </div>
 
           {/* Dots Tracking */}
           <div>
-            <div className="text-sm font-medium mb-2">Dots tracking for:</div>
+            <div className="text-sm font-medium text-neutral-700 mb-3 text-left">Dots tracking for:</div>
             <div className="flex gap-6">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 <Checkbox
                   id="dots-greenies"
                   checked={value.trackGreenies}
                   onCheckedChange={(checked) => updateField('trackGreenies', checked)}
                   disabled={saving}
+                  className="h-5 w-5"
                 />
-                <Label htmlFor="dots-greenies" className="cursor-pointer">
+                <Label htmlFor="dots-greenies" className="cursor-pointer text-sm text-neutral-700">
                   Greenies
                 </Label>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 <Checkbox
                   id="dots-sandies"
                   checked={value.trackSandies}
                   onCheckedChange={(checked) => updateField('trackSandies', checked)}
                   disabled={saving}
+                  className="h-5 w-5"
                 />
-                <Label htmlFor="dots-sandies" className="cursor-pointer">
+                <Label htmlFor="dots-sandies" className="cursor-pointer text-sm text-neutral-700">
                   Sandies
                 </Label>
               </div>
@@ -162,10 +177,10 @@ export function DotsSetup({
 
           {/* Player Selection */}
           <div>
-            <div className="text-sm font-medium mb-2">Select Players:</div>
-            <div className="flex flex-wrap gap-4">
+            <div className="text-sm font-medium text-neutral-700 mb-3 text-left">Participating Players:</div>
+            <div className="space-y-3">
               {players.map((player) => (
-                <div key={player.id} className="flex items-center space-x-2">
+                <div key={player.id} className="flex items-center space-x-3">
                   <Checkbox
                     id={`dots-player-${player.id}`}
                     checked={isPlayerSelected(player.id)}
@@ -173,12 +188,13 @@ export function DotsSetup({
                       togglePlayer(player.id, checked as boolean)
                     }
                     disabled={saving}
+                    className="h-5 w-5"
                   />
                   <Label
                     htmlFor={`dots-player-${player.id}`}
-                    className="cursor-pointer"
+                    className="cursor-pointer text-sm text-neutral-900"
                   >
-                    {player.shortName}
+                    {getDisplayName(player)}
                   </Label>
                 </div>
               ))}

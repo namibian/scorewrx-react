@@ -53,30 +53,33 @@ export function SixesSetup({
   }
 
   return (
-    <div className="mb-6">
-      <div className="flex items-center space-x-2 mb-2">
+    <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-200">
+      <div className="flex items-center space-x-3">
         <Checkbox
           id="sixes-enabled"
           checked={value.enabled}
           onCheckedChange={toggleEnabled}
           disabled={disabled || !hasCourseData || saving}
+          className="h-5 w-5"
         />
-        <Label htmlFor="sixes-enabled" className="text-lg font-medium cursor-pointer">
+        <Label htmlFor="sixes-enabled" className="text-base font-semibold text-neutral-900 cursor-pointer">
           Sixes
         </Label>
       </div>
 
       {getToggleHint() && (
-        <Alert className="mb-2">
+        <Alert className="mt-3">
           <AlertDescription className="text-sm">{getToggleHint()}</AlertDescription>
         </Alert>
       )}
 
       {value.enabled && (
-        <div className="pl-6 mt-4 space-y-4">
+        <div className="mt-4 space-y-5">
           {/* Amount per Game */}
-          <div>
-            <Label htmlFor="sixes-amount">$ Amount per Game</Label>
+          <div className="grid grid-cols-[140px_1fr] gap-3 items-center">
+            <Label htmlFor="sixes-amount" className="text-left text-sm font-medium text-neutral-700">
+              $ Amount per Game
+            </Label>
             <Input
               id="sixes-amount"
               type="number"
@@ -85,13 +88,13 @@ export function SixesSetup({
               value={value.amountPerGame}
               onChange={(e) => updateField('amountPerGame', e.target.value)}
               disabled={disabled || saving}
-              className="mt-1"
+              className="h-11 text-base"
             />
           </div>
 
           {/* Toggles */}
           <div className="space-y-3">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <Checkbox
                 id="sixes-differential"
                 checked={value.useDifferentialHandicap}
@@ -99,13 +102,14 @@ export function SixesSetup({
                   updateField('useDifferentialHandicap', checked)
                 }
                 disabled={disabled || saving}
+                className="h-5 w-5"
               />
-              <Label htmlFor="sixes-differential" className="cursor-pointer">
+              <Label htmlFor="sixes-differential" className="cursor-pointer text-sm font-medium text-neutral-700">
                 Use Differential Handicaps
               </Label>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <Checkbox
                 id="sixes-distribute"
                 checked={value.distributeStrokesEvenly}
@@ -113,20 +117,22 @@ export function SixesSetup({
                   updateField('distributeStrokesEvenly', checked)
                 }
                 disabled={disabled || saving}
+                className="h-5 w-5"
               />
-              <Label htmlFor="sixes-distribute" className="cursor-pointer">
+              <Label htmlFor="sixes-distribute" className="cursor-pointer text-sm font-medium text-neutral-700">
                 Distribute Strokes Evenly
               </Label>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <Checkbox
                 id="sixes-2points"
                 checked={value.use2PointsPerGame}
                 onCheckedChange={(checked) => updateField('use2PointsPerGame', checked)}
                 disabled={disabled || saving}
+                className="h-5 w-5"
               />
-              <Label htmlFor="sixes-2points" className="cursor-pointer">
+              <Label htmlFor="sixes-2points" className="cursor-pointer text-sm font-medium text-neutral-700">
                 Use 2 Points Per Game
               </Label>
             </div>

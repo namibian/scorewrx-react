@@ -52,30 +52,33 @@ export function NinesSetup({
   }
 
   return (
-    <div className="mb-6">
-      <div className="flex items-center space-x-2 mb-2">
+    <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-200">
+      <div className="flex items-center space-x-3">
         <Checkbox
           id="nines-enabled"
           checked={value.enabled}
           onCheckedChange={toggleEnabled}
           disabled={disabled || saving}
+          className="h-5 w-5"
         />
-        <Label htmlFor="nines-enabled" className="text-lg font-medium cursor-pointer">
+        <Label htmlFor="nines-enabled" className="text-base font-semibold text-neutral-900 cursor-pointer">
           Nines
         </Label>
       </div>
 
       {getToggleHint() && (
-        <Alert className="mb-2">
+        <Alert className="mt-3">
           <AlertDescription className="text-sm">{getToggleHint()}</AlertDescription>
         </Alert>
       )}
 
       {value.enabled && (
-        <div className="pl-6 mt-4 space-y-4">
+        <div className="mt-4 space-y-5">
           {/* Amount per Point */}
-          <div>
-            <Label htmlFor="nines-amount">$ Amount per Point</Label>
+          <div className="grid grid-cols-[140px_1fr] gap-3 items-center">
+            <Label htmlFor="nines-amount" className="text-left text-sm font-medium text-neutral-700">
+              $ Amount per Point
+            </Label>
             <Input
               id="nines-amount"
               type="number"
@@ -84,12 +87,12 @@ export function NinesSetup({
               value={value.amountPerPoint}
               onChange={(e) => updateField('amountPerPoint', e.target.value)}
               disabled={disabled || saving}
-              className="mt-1"
+              className="h-11 text-base"
             />
           </div>
 
           {/* Toggles */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <Checkbox
               id="nines-differential"
               checked={value.useDifferentialHandicap}
@@ -97,8 +100,9 @@ export function NinesSetup({
                 updateField('useDifferentialHandicap', checked)
               }
               disabled={disabled || saving}
+              className="h-5 w-5"
             />
-            <Label htmlFor="nines-differential" className="cursor-pointer">
+            <Label htmlFor="nines-differential" className="cursor-pointer text-sm font-medium text-neutral-700">
               Use Differential Handicaps
             </Label>
           </div>

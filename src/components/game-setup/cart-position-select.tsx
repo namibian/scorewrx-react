@@ -28,17 +28,28 @@ export function CartPositionSelect({
 }: CartPositionSelectProps) {
   const label = position.charAt(0).toUpperCase() + position.slice(1)
 
+  // Generate display name: "Chris O" format
+  const getDisplayName = (player: Player) => {
+    if (player.shortName) return player.shortName
+    if (player.firstName && player.lastName) {
+      return `${player.firstName} ${player.lastName.charAt(0)}`
+    }
+    return player.firstName || player.lastName || 'Unknown'
+  }
+
   const availablePlayers = players.filter(
     (player) => !isPlayerAssigned(player.id) || player.id === value?.id
   )
 
   return (
-    <div className="space-y-2">
-      <Label htmlFor={`${position}-select`}>{label}</Label>
+    <div className="grid grid-cols-[80px_1fr] gap-3 items-center">
+      <Label htmlFor={`${position}-select`} className="text-left text-sm font-medium text-neutral-700">
+        {label}
+      </Label>
       <Select
-        value={value?.id || 'none'}
+        value={value?.id || ''}
         onValueChange={(playerId) => {
-          if (playerId === 'none') {
+          if (playerId === '') {
             onChange(null)
           } else {
             const player = players.find((p) => p.id === playerId)
@@ -47,14 +58,13 @@ export function CartPositionSelect({
         }}
         disabled={disabled}
       >
-        <SelectTrigger id={`${position}-select`}>
-          <SelectValue placeholder={`Select ${label}`} />
+        <SelectTrigger id={`${position}-select`} className="w-full h-11 text-base">
+          <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="none">None</SelectItem>
           {availablePlayers.map((player) => (
-            <SelectItem key={player.id} value={player.id}>
-              {player.shortName}
+            <SelectItem key={player.id} value={player.id} className="py-3 text-base">
+              {getDisplayName(player)}
             </SelectItem>
           ))}
         </SelectContent>

@@ -205,9 +205,9 @@ export default function TournamentCodeEntryPage() {
             </p>
           </div>
 
-          {/* Code Input Boxes - Large, easy to tap */}
+          {/* Code Input Boxes - Responsive, fits container */}
           <div className="mb-6">
-            <div className="flex gap-2 sm:gap-3 justify-center items-center">
+            <div className="grid grid-cols-6 gap-2 max-w-[280px] mx-auto">
               {[0, 1, 2, 3, 4, 5].map((index) => (
                 <input
                   key={index}
@@ -221,7 +221,7 @@ export default function TournamentCodeEntryPage() {
                   onPaste={handlePaste}
                   disabled={loading}
                   className={cn(
-                    "w-11 h-14 sm:w-12 sm:h-16 text-2xl font-bold text-center",
+                    "aspect-[3/4] w-full text-2xl font-bold text-center",
                     "border-2 rounded-lg outline-none transition-all duration-150",
                     "bg-neutral-50 text-neutral-900",
                     "focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20",

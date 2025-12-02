@@ -5,6 +5,7 @@ import { useCoursesStore } from '@/stores/courses-store'
 import {
   Player,
   Course,
+  StrokeHoles,
 } from '@/types'
 import {
   DEFAULT_SIXES_SETTINGS,
@@ -14,6 +15,12 @@ import {
   MINIMUM_PLAYERS_SIXES,
   MINIMUM_PLAYERS_NINES,
 } from '@/lib/constants/game-defaults'
+import {
+  calculateTotalStrokes,
+  distributeSixesGameStrokes,
+  distributeDotsStrokes,
+  distributeStrokesByHoleHandicap,
+} from '@/lib/game-logic/stroke-calculation'
 import { PlayerList } from '@/components/game-setup/player-list'
 import { CartAssignments } from '@/components/game-setup/cart-assignments'
 import { SixesSetup } from '@/components/game-setup/sixes-setup'
@@ -21,7 +28,6 @@ import { NinesSetup } from '@/components/game-setup/nines-setup'
 import { NassauSetup } from '@/components/game-setup/nassau-setup'
 import { DotsSetup } from '@/components/game-setup/dots-setup'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
 
@@ -60,6 +66,7 @@ export default function GameSetupPage() {
 
   const [players, setPlayers] = useState<Player[]>([])
   const [courseData, setCourseData] = useState<Course | null>(null)
+  const [startingTee, setStartingTee] = useState(1)
 
   const [games, setGames] = useState({
     sixes: { ...DEFAULT_SIXES_SETTINGS },
@@ -91,6 +98,9 @@ export default function GameSetupPage() {
         if (!group) {
           throw new Error('Group not found')
         }
+
+        // Set starting tee for stroke calculations
+        setStartingTee(group.startingTee || 1)
 
         // Initialize players
         setPlayers(
@@ -165,7 +175,8 @@ export default function GameSetupPage() {
     }
 
     loadData()
-  }, [tournamentId, groupId, tournamentsStore, coursesStore])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tournamentId, groupId])
 
   const updatePlayer = (playerId: string, field: string, value: any) => {
     setPlayers((prev) =>
@@ -244,32 +255,135 @@ export default function GameSetupPage() {
         throw new Error('Course data is required for game setup. Please try again.')
       }
 
-      // TODO: Calculate stroke holes for each player
-      // This will require implementing the stroke calculation logic
-      // For now, we'll save without stroke calculation
+      // Helper to get cart assignment for a player from cartPositions
+      const getCartAssignment = (playerId: string): { cart: string | null; position: string | null } => {
+        if (cartPositions.cart1.driver?.id === playerId) return { cart: '1', position: 'driver' }
+        if (cartPositions.cart1.rider?.id === playerId) return { cart: '1', position: 'rider' }
+        if (cartPositions.cart2.driver?.id === playerId) return { cart: '2', position: 'driver' }
+        if (cartPositions.cart2.rider?.id === playerId) return { cart: '2', position: 'rider' }
+        return { cart: null, position: null }
+      }
 
-      const finalPlayers = players.map((player) => ({
-        ...player,
-        cart: games.sixes.enabled ? player.cart || null : null,
-        position: games.sixes.enabled ? player.position || null : null,
-        skinsPool: player.skinsPool || 'None',
-        score: Array(18).fill(null),
-        dots: Array(18).fill(0),
-        dnf: Array(18).fill(false),
-        greenies: [],
-        sandies: [],
-      }))
+      // Calculate stroke holes for each player based on enabled games
+      const finalPlayers = players.map((player) => {
+        // Get cart assignment for this player
+        const cartAssignment = getCartAssignment(player.id)
+
+        // Calculate strokes for each game type
+        const strokeHoles: StrokeHoles = {
+          sixes: { firstGame: [], secondGame: [], thirdGame: [] },
+          nines: [],
+          dots: [],
+          nassau: []
+        }
+
+        // Sixes strokes
+        if (games.sixes.enabled && players.length === 4) {
+          const totalStrokes = calculateTotalStrokes(
+            player,
+            players,
+            games.sixes.useDifferentialHandicap,
+            'Standard'
+          )
+          const sixesStrokes = distributeSixesGameStrokes(
+            player,
+            players,
+            games.sixes.useDifferentialHandicap,
+            'Standard',
+            courseData,
+            startingTee,
+            totalStrokes
+          )
+          strokeHoles.sixes = sixesStrokes
+        }
+
+        // Nines strokes
+        if (games.nines.enabled && players.length === 3) {
+          const totalStrokes = calculateTotalStrokes(
+            player,
+            players,
+            games.nines.useDifferentialHandicap,
+            'Standard'
+          )
+          strokeHoles.nines = distributeStrokesByHoleHandicap(
+            player,
+            players,
+            games.nines.useDifferentialHandicap,
+            'Standard',
+            courseData,
+            totalStrokes
+          )
+        }
+
+        // Dots strokes
+        if (games.dots.enabled) {
+          const totalStrokes = calculateTotalStrokes(
+            player,
+            players,
+            games.dots.useDifferentialHandicap,
+            'Standard'
+          )
+          strokeHoles.dots = distributeDotsStrokes(
+            player,
+            players,
+            games.dots.useDifferentialHandicap,
+            'Standard',
+            courseData,
+            totalStrokes
+          )
+        }
+
+        // Nassau strokes
+        if (games.nassau.enabled && players.length === 2) {
+          // Nassau uses full handicap (not differential typically)
+          const totalStrokes = calculateTotalStrokes(
+            player,
+            players,
+            true, // Nassau typically uses differential
+            'Standard'
+          )
+          strokeHoles.nassau = distributeStrokesByHoleHandicap(
+            player,
+            players,
+            true,
+            'Standard',
+            courseData,
+            totalStrokes
+          )
+        }
+
+        return {
+          ...player,
+          strokeHoles,
+          cart: games.sixes.enabled ? cartAssignment.cart : null,
+          position: games.sixes.enabled ? cartAssignment.position : null,
+          skinsPool: player.skinsPool || 'None',
+          score: Array(18).fill(null),
+          dots: Array(18).fill(0),
+          dnf: Array(18).fill(false),
+          greenies: [],
+          sandies: [],
+        }
+      })
+
+      // Build game settings object, only including enabled games
+      // Firebase doesn't accept undefined values, so we build the object conditionally
+      const gameSettings: Record<string, any> = {}
+      if (games.sixes.enabled) gameSettings.sixes = games.sixes
+      if (games.nines.enabled) gameSettings.nines = games.nines
+      if (games.nassau.enabled) gameSettings.nassau = games.nassau
+      if (games.dots.enabled) gameSettings.dots = games.dots
+
+      // Log the data being saved for debugging
+      console.log('[GameSetup] Saving game setup...')
+      console.log('[GameSetup] Final players:', JSON.stringify(finalPlayers, null, 2))
+      console.log('[GameSetup] Game settings:', gameSettings)
 
       // Save game settings and navigate to scorecard
       await tournamentsStore.saveGameSetup({
         tournamentId,
         groupId,
-        gameSettings: {
-          sixes: games.sixes.enabled ? games.sixes : undefined,
-          nines: games.nines.enabled ? games.nines : undefined,
-          nassau: games.nassau.enabled ? games.nassau : undefined,
-          dots: games.dots.enabled ? games.dots : undefined,
-        },
+        gameSettings,
         players: finalPlayers,
         scorerId: playerId,
       })
@@ -282,6 +396,11 @@ export default function GameSetupPage() {
         navigate(`/tournament/${tournamentId}/group/${groupId}/player/${playerId}/scorecard`)
       }
     } catch (err: any) {
+      console.error('[GameSetup] Save error:', err)
+      console.error('[GameSetup] Error message:', err.message)
+      console.error('[GameSetup] Players data:', JSON.stringify(players, null, 2))
+      console.error('[GameSetup] Game settings:', JSON.stringify(games, null, 2))
+      console.error('[GameSetup] Cart positions:', JSON.stringify(cartPositions, null, 2))
       setError(err.message || 'Failed to save game setup')
     } finally {
       setSaving(false)
@@ -344,14 +463,42 @@ export default function GameSetupPage() {
         </div>
       )}
 
-      {/* Main Content - Clean cards */}
-      <div className="px-4 py-6 max-w-lg mx-auto space-y-4 pb-24">
+      {/* Step Indicator */}
+      <div className="px-4 pt-4">
+        <div className="max-w-lg mx-auto flex items-center justify-center gap-2">
+          {[1, 2, 3].map((step) => (
+            <div key={step} className="flex items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                  step === currentStep
+                    ? 'bg-emerald-600 text-white'
+                    : step < currentStep
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-neutral-200 text-neutral-500'
+                }`}
+              >
+                {step}
+              </div>
+              {step < 3 && (
+                <div
+                  className={`w-12 h-1 mx-1 rounded ${
+                    step < currentStep ? 'bg-emerald-300' : 'bg-neutral-200'
+                  }`}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Content - One step at a time */}
+      <div className="px-4 py-6 max-w-lg mx-auto pb-24">
         {/* Step 1: Pool Selection */}
-        {currentStep >= 1 && (
+        {currentStep === 1 && (
           <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-neutral-100 bg-neutral-50/50">
               <h3 className="text-base font-semibold text-neutral-900">
-                1. Pool Selection
+                Pool Selection
               </h3>
               <p className="text-sm text-neutral-500 mt-0.5">
                 Select skins pool for each player
@@ -364,26 +511,24 @@ export default function GameSetupPage() {
                 disabled={saving}
                 onUpdatePlayer={updatePlayer}
               />
-              {currentStep === 1 && (
-                <div className="mt-5">
-                  <Button 
-                    onClick={() => setCurrentStep(2)} 
-                    className="w-full h-14 text-base font-medium bg-emerald-600 hover:bg-emerald-700"
-                  >
-                    Continue
-                  </Button>
-                </div>
-              )}
+              <div className="mt-5">
+                <Button 
+                  onClick={() => setCurrentStep(2)} 
+                  className="w-full h-14 text-base font-medium bg-emerald-600 hover:bg-emerald-700"
+                >
+                  Continue
+                </Button>
+              </div>
             </div>
           </div>
         )}
 
         {/* Step 2: Cart Assignments */}
-        {currentStep >= 2 && (
+        {currentStep === 2 && (
           <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-neutral-100 bg-neutral-50/50">
               <h3 className="text-base font-semibold text-neutral-900">
-                2. Cart Assignments
+                Cart Assignments
               </h3>
               <p className="text-sm text-neutral-500 mt-0.5">
                 Assign players to carts
@@ -404,33 +549,31 @@ export default function GameSetupPage() {
                   </p>
                 </div>
               )}
-              {currentStep === 2 && (
-                <div className="mt-5 flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setCurrentStep(1)}
-                    className="flex-1 h-14 text-base font-medium border-neutral-300"
-                  >
-                    Back
-                  </Button>
-                  <Button 
-                    onClick={() => setCurrentStep(3)} 
-                    className="flex-1 h-14 text-base font-medium bg-emerald-600 hover:bg-emerald-700"
-                  >
-                    Continue
-                  </Button>
-                </div>
-              )}
+              <div className="mt-5 flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep(1)}
+                  className="flex-1 h-14 text-base font-medium border-neutral-300"
+                >
+                  Back
+                </Button>
+                <Button 
+                  onClick={() => setCurrentStep(3)} 
+                  className="flex-1 h-14 text-base font-medium bg-emerald-600 hover:bg-emerald-700"
+                >
+                  Continue
+                </Button>
+              </div>
             </div>
           </div>
         )}
 
         {/* Step 3: Game Selection */}
-        {currentStep >= 3 && (
+        {currentStep === 3 && (
           <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-neutral-100 bg-neutral-50/50">
               <h3 className="text-base font-semibold text-neutral-900">
-                3. Game Selection
+                Game Selection
               </h3>
               <p className="text-sm text-neutral-500 mt-0.5">
                 Configure your games

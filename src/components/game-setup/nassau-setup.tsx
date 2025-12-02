@@ -63,22 +63,23 @@ export function NassauSetup({
   }
 
   return (
-    <div className="mb-6">
-      <div className="flex items-center space-x-2 mb-2">
+    <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-200">
+      <div className="flex items-center space-x-3">
         <Checkbox
           id="nassau-enabled"
           checked={value.enabled}
           onCheckedChange={updateEnabled}
           disabled={disabled || saving}
+          className="h-5 w-5"
         />
-        <Label htmlFor="nassau-enabled" className="text-lg font-medium cursor-pointer">
+        <Label htmlFor="nassau-enabled" className="text-base font-semibold text-neutral-900 cursor-pointer">
           Nassau Match
         </Label>
         {disabled && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <Info className="h-5 w-5 text-muted-foreground" />
+                <Info className="h-5 w-5 text-neutral-400" />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Nassau Match requires exactly 2 players</p>
@@ -89,55 +90,55 @@ export function NassauSetup({
       </div>
 
       {value.enabled && (
-        <div className="pl-6 mt-4 space-y-4">
+        <div className="mt-4 space-y-5">
           {/* Amount Per Game */}
-          <div>
-            <Label htmlFor="nassau-amount">Amount Per Game</Label>
-            <div className="relative mt-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                $
-              </span>
-              <Input
-                id="nassau-amount"
-                type="number"
-                min="0"
-                step="0.5"
-                value={value.amountPerGame}
-                onChange={(e) => updateAmount(e.target.value)}
-                disabled={saving}
-                className="pl-7"
-              />
-            </div>
+          <div className="grid grid-cols-[140px_1fr] gap-3 items-center">
+            <Label htmlFor="nassau-amount" className="text-left text-sm font-medium text-neutral-700">
+              $ Amount Per Game
+            </Label>
+            <Input
+              id="nassau-amount"
+              type="number"
+              min="0"
+              step="0.5"
+              value={value.amountPerGame}
+              onChange={(e) => updateAmount(e.target.value)}
+              disabled={saving}
+              className="h-11 text-base"
+            />
           </div>
 
           {/* Automatic Presses */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <Checkbox
               id="nassau-presses"
               checked={value.automaticPresses}
               onCheckedChange={updateAutomaticPresses}
               disabled={saving}
+              className="h-5 w-5"
             />
-            <Label htmlFor="nassau-presses" className="cursor-pointer">
+            <Label htmlFor="nassau-presses" className="cursor-pointer text-sm font-medium text-neutral-700">
               Automatic Presses
             </Label>
           </div>
 
           {/* Match Type */}
-          <div>
-            <Label htmlFor="nassau-type">Match Type</Label>
+          <div className="grid grid-cols-[140px_1fr] gap-3 items-center">
+            <Label htmlFor="nassau-type" className="text-left text-sm font-medium text-neutral-700">
+              Match Type
+            </Label>
             <Select
               value={value.matchType}
               onValueChange={updateMatchType}
               disabled={saving}
             >
-              <SelectTrigger id="nassau-type" className="mt-1">
+              <SelectTrigger id="nassau-type" className="h-11 text-base">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Front, Back, Overall</SelectItem>
-                <SelectItem value="frontback">Front, Back only</SelectItem>
-                <SelectItem value="overall">Overall only</SelectItem>
+                <SelectItem value="all" className="py-3 text-base">Front, Back, Overall</SelectItem>
+                <SelectItem value="frontback" className="py-3 text-base">Front, Back only</SelectItem>
+                <SelectItem value="overall" className="py-3 text-base">Overall only</SelectItem>
               </SelectContent>
             </Select>
           </div>

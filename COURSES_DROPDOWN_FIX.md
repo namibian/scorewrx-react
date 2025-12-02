@@ -158,3 +158,4 @@ const { courses, loading: coursesLoading } = useCoursesStore()
 - The course count provides quick feedback about available options
 
 
+

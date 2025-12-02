@@ -11,7 +11,9 @@ import { Separator } from '@/components/ui/separator'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -119,6 +121,22 @@ export default function PlayerLandingPage() {
       groupNumber: group.number || 1,
     }))
   ).sort((a, b) => `${a.lastName}, ${a.firstName}`.localeCompare(`${b.lastName}, ${b.firstName}`)) || []
+
+  // Group players by group number for the dropdown
+  const playersByGroup = tournament?.groups
+    ?.slice()
+    .sort((a, b) => (a.number || 1) - (b.number || 1))
+    .map((group) => ({
+      groupNumber: group.number || 1,
+      groupId: group.id,
+      players: (group.players || [])
+        .map((player) => ({
+          ...player,
+          groupId: group.id,
+          groupNumber: group.number || 1,
+        }))
+        .sort((a, b) => `${a.lastName}, ${a.firstName}`.localeCompare(`${b.lastName}, ${b.firstName}`)),
+    })) || []
 
   // Get selected group
   const selectedGroup = selectedPlayer
@@ -278,7 +296,7 @@ export default function PlayerLandingPage() {
         players: editableGroupPlayers,
       }
 
-      await tournamentsStore.updateGroup(tournament.id, selectedGroup.id, updatedGroup)
+      await tournamentsStore.updateGroup(tournament.id, updatedGroup)
 
       // Refresh tournament data
       const refreshedTournament = await tournamentsStore.getTournament(tournament.id)
@@ -310,7 +328,7 @@ export default function PlayerLandingPage() {
 
       // If user wants to be scorer, update the group
       if (isScorer && group.scorerId !== selectedPlayer.id) {
-        await tournamentsStore.updateGroup(tournament.id, group.id, {
+        await tournamentsStore.updateGroup(tournament.id, {
           ...group,
           scorerId: selectedPlayer.id,
         })
@@ -322,7 +340,7 @@ export default function PlayerLandingPage() {
         if (selectedPlayer.id === group.scorerId) {
           throw new Error('Verifier cannot also be the scorer')
         }
-        await tournamentsStore.updateGroup(tournament.id, group.id, {
+        await tournamentsStore.updateGroup(tournament.id, {
           ...group,
           verifierId: selectedPlayer.id,
         })
@@ -367,7 +385,7 @@ export default function PlayerLandingPage() {
         scorerId: selectedPlayer.id,
       }
 
-      await tournamentsStore.updateGroup(tournament.id, selectedGroup.id, updatedGroup)
+      await tournamentsStore.updateGroup(tournament.id, updatedGroup)
 
       setWillTakeOverScoring(false)
       setRemoveCurrentScorer(false)
@@ -469,7 +487,7 @@ export default function PlayerLandingPage() {
           </div>
           
           <div className="p-5 space-y-5">
-            {/* Player Dropdown - Large touch target */}
+            {/* Player Dropdown - Grouped by group number */}
             <div>
               <Label htmlFor="player-select" className="text-sm font-medium text-neutral-700 mb-2 block">
                 Select Your Name
@@ -485,11 +503,22 @@ export default function PlayerLandingPage() {
                 >
                   <SelectValue placeholder="Tap to select your name" />
                 </SelectTrigger>
-                <SelectContent>
-                  {tournamentPlayers.map((player) => (
-                    <SelectItem key={player.id} value={player.id} className="py-3 text-base">
-                      {player.lastName}, {player.firstName} — Group {player.groupNumber}
-                    </SelectItem>
+                <SelectContent className="max-h-80">
+                  {playersByGroup.map((group) => (
+                    <SelectGroup key={group.groupId}>
+                      <SelectLabel className="bg-neutral-100 text-neutral-700 font-semibold text-xs uppercase tracking-wide py-2 px-3 -mx-1 mt-1 first:mt-0">
+                        Group {group.groupNumber}
+                      </SelectLabel>
+                      {group.players.map((player) => (
+                        <SelectItem 
+                          key={player.id} 
+                          value={player.id} 
+                          className="py-3 pl-6 text-base"
+                        >
+                          {player.lastName}, {player.firstName}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>
@@ -500,209 +529,199 @@ export default function PlayerLandingPage() {
               <>
                 <div className="h-px bg-neutral-200" />
 
-                <div>
-                  <h4 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide mb-3">
-                    Your Group
-                  </h4>
-
-                  {/* If scorer: Show editable group */}
-                  {(isSelectedPlayerScorer || isScorer) ? (
-                    <div className="space-y-4">
-                      {/* Editable Players List */}
-                      <div className="space-y-2">
-                        {editableGroupPlayers.map((player) => (
+                {/* If scorer: Show editable group */}
+                {(isSelectedPlayerScorer || isScorer) ? (
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide">
+                      Your Group
+                    </h4>
+                    
+                    {/* Editable Players List - Fixed grid layout */}
+                    <div className="space-y-2">
+                      {editableGroupPlayers.map((player) => {
+                        // Create short name: "Chris O" format (firstName + lastInitial)
+                        const shortName = `${player.firstName} ${player.lastName.charAt(0)}`
+                        const isCurrentPlayer = player.id === selectedPlayer.id
+                        
+                        return (
                           <div 
                             key={player.id} 
-                            className="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg"
+                            className="grid grid-cols-[1fr_64px_40px] gap-2 items-center p-3 bg-neutral-50 rounded-lg"
                           >
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-neutral-900 truncate">
-                                {player.firstName} {player.lastName}
-                              </p>
-                            </div>
-                            <div className="w-16">
-                              <Input
-                                type="number"
-                                value={player.tournamentHandicap || 0}
-                                onChange={(e) => handleHandicapChange(player.id, Number(e.target.value))}
-                                min={0}
-                                max={36}
-                                className="text-center h-10 text-base font-medium bg-white border-neutral-300"
-                              />
-                            </div>
-                            {player.id !== selectedPlayer.id && (
+                            <p className="font-medium text-neutral-900 truncate">
+                              {shortName}
+                            </p>
+                            <Input
+                              type="number"
+                              value={player.tournamentHandicap || 0}
+                              onChange={(e) => handleHandicapChange(player.id, Number(e.target.value))}
+                              min={0}
+                              max={36}
+                              className="text-center h-10 text-base font-medium bg-white border-neutral-300"
+                            />
+                            {isCurrentPlayer ? (
+                              <div className="w-10" /> 
+                            ) : (
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-10 w-10 text-red-500 hover:text-red-600 hover:bg-red-50 shrink-0"
+                                className="h-10 w-10 text-red-500 hover:text-red-600 hover:bg-red-50"
                                 onClick={() => removePlayerFromGroup(player.id)}
                               >
                                 <Minus className="h-5 w-5" />
                               </Button>
                             )}
                           </div>
-                        ))}
-                      </div>
-
-                      {/* Add Player */}
-                      {!hasMaxPlayersInGroup ? (
-                        <Select onValueChange={(id) => {
-                          const player = availablePlayersForGroup().find((p) => p.id === id)
-                          if (player) addPlayerToGroup(player)
-                        }}>
-                          <SelectTrigger className="w-full h-12 text-base bg-white border-dashed border-neutral-300 text-neutral-500">
-                            <SelectValue placeholder="+ Add player to group" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availablePlayersForGroup().map((player) => (
-                              <SelectItem key={player.id} value={player.id} className="py-3 text-base">
-                                {player.lastName}, {player.firstName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <p className="text-sm text-neutral-500 text-center py-2">
-                          Maximum 4 players per group
-                        </p>
-                      )}
-
-                      {/* Save Group Changes */}
-                      {groupHasChanges() && (
-                        <Button
-                          onClick={saveGroupChanges}
-                          disabled={savingGroup}
-                          className="w-full h-12 text-base font-medium bg-emerald-600 hover:bg-emerald-700"
-                        >
-                          {savingGroup ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Saving...
-                            </>
-                          ) : (
-                            'Save Changes'
-                          )}
-                        </Button>
-                      )}
+                        )
+                      })}
                     </div>
-                  ) : (
-                    /* If NOT scorer: Just show player list */
-                    <div className="space-y-5">
-                      {/* Group Players - Clean list */}
-                      <div className="bg-neutral-50 rounded-lg p-4">
-                        <p className="text-base text-neutral-700 leading-relaxed">
-                          {getGroupPlayerNames(selectedPlayer.groupId)}
-                        </p>
-                      </div>
 
-                      <div className="h-px bg-neutral-200" />
+                    {/* Add Player */}
+                    {!hasMaxPlayersInGroup ? (
+                      <Select onValueChange={(id) => {
+                        const player = availablePlayersForGroup().find((p) => p.id === id)
+                        if (player) addPlayerToGroup(player)
+                      }}>
+                        <SelectTrigger className="w-full h-12 text-base bg-white border-dashed border-neutral-300 text-neutral-500">
+                          <SelectValue placeholder="+ Add player to group" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availablePlayersForGroup().map((player) => (
+                            <SelectItem key={player.id} value={player.id} className="py-3 text-base">
+                              {player.lastName}, {player.firstName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-neutral-500 text-center py-2">
+                        Maximum 4 players per group
+                      </p>
+                    )}
 
-                      {/* Scoring Preference */}
-                      <div>
-                        <h4 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide mb-3">
-                          Your Role
-                        </h4>
+                    {/* Save Group Changes */}
+                    {groupHasChanges() && (
+                      <Button
+                        onClick={saveGroupChanges}
+                        disabled={savingGroup}
+                        className="w-full h-12 text-base font-medium bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        {savingGroup ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          'Save Changes'
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  /* If NOT scorer: Show role selection only */
+                  <div>
+                    <h4 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide mb-3">
+                      Your Role
+                    </h4>
+                    
+                    {!hasGroupScorer(selectedPlayer.groupId) ? (
+                      <label className="flex items-start gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200 cursor-pointer">
+                        <Checkbox
+                          id="scorer-checkbox"
+                          checked={isScorer}
+                          onCheckedChange={(checked) => setIsScorer(checked as boolean)}
+                          disabled={processing}
+                          className="mt-0.5 h-5 w-5 border-emerald-400 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+                        />
+                        <div>
+                          <span className="text-base font-medium text-neutral-900 block">
+                            I'll be the scorer
+                          </span>
+                          <span className="text-sm text-neutral-600 mt-0.5 block">
+                            Enter scores for your group
+                          </span>
+                        </div>
+                      </label>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                          <p className="text-base text-amber-800 font-medium">
+                            {getGroupScorer(selectedPlayer.groupId)} is scoring
+                          </p>
+                        </div>
+                        <Button
+                          onClick={() => setWillTakeOverScoring(true)}
+                          disabled={processing}
+                          variant="outline"
+                          className="w-full h-12 text-base font-medium border-neutral-300 hover:bg-neutral-50"
+                        >
+                          Take Over Scoring
+                        </Button>
+
+                        {/* Verifier Option */}
+                        <div className="h-px bg-neutral-200" />
                         
-                        {!hasGroupScorer(selectedPlayer.groupId) ? (
-                          <label className="flex items-start gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200 cursor-pointer">
+                        {!hasGroupVerifier(selectedPlayer.groupId) ? (
+                          <label className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200 cursor-pointer">
                             <Checkbox
-                              id="scorer-checkbox"
-                              checked={isScorer}
-                              onCheckedChange={(checked) => setIsScorer(checked as boolean)}
-                              disabled={processing}
-                              className="mt-0.5 h-5 w-5 border-emerald-400 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+                              id="verifier-checkbox"
+                              checked={isVerifier}
+                              onCheckedChange={(checked) => setIsVerifier(checked as boolean)}
+                              disabled={processing || selectedPlayer.id === selectedGroup?.scorerId}
+                              className="mt-0.5 h-5 w-5 border-blue-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                             />
                             <div>
                               <span className="text-base font-medium text-neutral-900 block">
-                                I'll be the scorer
+                                I'll verify scores
                               </span>
                               <span className="text-sm text-neutral-600 mt-0.5 block">
-                                Enter scores for your group
+                                Double-check score entries
                               </span>
                             </div>
                           </label>
-                        ) : (
-                          <div className="space-y-4">
-                            <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-                              <p className="text-base text-amber-800 font-medium">
-                                {getGroupScorer(selectedPlayer.groupId)} is scoring
+                        ) : isSelectedPlayerVerifier ? (
+                          <div className="space-y-3">
+                            <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                              <p className="text-base text-emerald-800 font-medium">
+                                You're the verifier ✓
                               </p>
                             </div>
                             <Button
-                              onClick={() => setWillTakeOverScoring(true)}
-                              disabled={processing}
                               variant="outline"
-                              className="w-full h-12 text-base font-medium border-neutral-300 hover:bg-neutral-50"
+                              className="w-full h-12 text-base text-red-600 border-red-200 hover:bg-red-50"
+                              onClick={async () => {
+                                try {
+                                  setProcessing(true)
+                                  await tournamentsStore.updateGroup(tournament!.id, {
+                                    ...selectedGroup!,
+                                    verifierId: null,
+                                  })
+                                  const refreshed = await tournamentsStore.getTournament(tournament!.id)
+                                  setTournament(refreshed)
+                                  setIsVerifier(false)
+                                  toast.success('Verifier role removed')
+                                } catch {
+                                  toast.error('Failed to remove verifier role')
+                                } finally {
+                                  setProcessing(false)
+                                }
+                              }}
+                              disabled={processing}
                             >
-                              Take Over Scoring
+                              Remove Verifier Role
                             </Button>
-
-                            {/* Verifier Option */}
-                            <div className="h-px bg-neutral-200" />
-                            
-                            {!hasGroupVerifier(selectedPlayer.groupId) ? (
-                              <label className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200 cursor-pointer">
-                                <Checkbox
-                                  id="verifier-checkbox"
-                                  checked={isVerifier}
-                                  onCheckedChange={(checked) => setIsVerifier(checked as boolean)}
-                                  disabled={processing || selectedPlayer.id === selectedGroup?.scorerId}
-                                  className="mt-0.5 h-5 w-5 border-blue-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                                />
-                                <div>
-                                  <span className="text-base font-medium text-neutral-900 block">
-                                    I'll verify scores
-                                  </span>
-                                  <span className="text-sm text-neutral-600 mt-0.5 block">
-                                    Double-check score entries
-                                  </span>
-                                </div>
-                              </label>
-                            ) : isSelectedPlayerVerifier ? (
-                              <div className="space-y-3">
-                                <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                                  <p className="text-base text-emerald-800 font-medium">
-                                    You're the verifier ✓
-                                  </p>
-                                </div>
-                                <Button
-                                  variant="outline"
-                                  className="w-full h-12 text-base text-red-600 border-red-200 hover:bg-red-50"
-                                  onClick={async () => {
-                                    try {
-                                      setProcessing(true)
-                                      await tournamentsStore.updateGroup(tournament!.id, selectedGroup!.id, {
-                                        ...selectedGroup!,
-                                        verifierId: null,
-                                      })
-                                      const refreshed = await tournamentsStore.getTournament(tournament!.id)
-                                      setTournament(refreshed)
-                                      setIsVerifier(false)
-                                      toast.success('Verifier role removed')
-                                    } catch {
-                                      toast.error('Failed to remove verifier role')
-                                    } finally {
-                                      setProcessing(false)
-                                    }
-                                  }}
-                                  disabled={processing}
-                                >
-                                  Remove Verifier Role
-                                </Button>
-                              </div>
-                            ) : (
-                              <div className="p-4 bg-neutral-50 rounded-lg">
-                                <p className="text-sm text-neutral-600">
-                                  {getGroupVerifier(selectedPlayer.groupId)} is verifying
-                                </p>
-                              </div>
-                            )}
+                          </div>
+                        ) : (
+                          <div className="p-4 bg-neutral-50 rounded-lg">
+                            <p className="text-sm text-neutral-600">
+                              {getGroupVerifier(selectedPlayer.groupId)} is verifying
+                            </p>
                           </div>
                         )}
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </div>

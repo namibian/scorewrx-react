@@ -1,5 +1,4 @@
 import { Player } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CartPositionSelect } from './cart-position-select'
 
 interface CartPositions {
@@ -50,62 +49,55 @@ export function CartAssignments({
   }
 
   return (
-    <div className="space-y-4 pl-6 mt-2">
-      <div className="text-sm font-medium">Cart Assignments</div>
-      <div className="space-y-4">
-        {/* Cart 1 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Cart 1</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <CartPositionSelect
-              value={value.cart1.driver}
-              players={players}
-              position="driver"
-              cartId="cart1"
-              isPlayerAssigned={isPlayerAssigned}
-              disabled={disabled}
-              onChange={(player) => assignPosition(player, 'cart1', 'driver')}
-            />
-            <CartPositionSelect
-              value={value.cart1.rider}
-              players={players}
-              position="rider"
-              cartId="cart1"
-              isPlayerAssigned={isPlayerAssigned}
-              disabled={disabled}
-              onChange={(player) => assignPosition(player, 'cart1', 'rider')}
-            />
-          </CardContent>
-        </Card>
+    <div className="space-y-6">
+      {/* Cart 1 */}
+      <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-200">
+        <h4 className="text-base font-semibold text-neutral-900 text-left mb-4">Cart 1</h4>
+        <div className="space-y-4">
+          <CartPositionSelect
+            value={value.cart1.driver}
+            players={players}
+            position="driver"
+            cartId="cart1"
+            isPlayerAssigned={isPlayerAssigned}
+            disabled={disabled}
+            onChange={(player) => assignPosition(player, 'cart1', 'driver')}
+          />
+          <CartPositionSelect
+            value={value.cart1.rider}
+            players={players}
+            position="rider"
+            cartId="cart1"
+            isPlayerAssigned={isPlayerAssigned}
+            disabled={disabled}
+            onChange={(player) => assignPosition(player, 'cart1', 'rider')}
+          />
+        </div>
+      </div>
 
-        {/* Cart 2 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Cart 2</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <CartPositionSelect
-              value={value.cart2.driver}
-              players={players}
-              position="driver"
-              cartId="cart2"
-              isPlayerAssigned={isPlayerAssigned}
-              disabled={disabled}
-              onChange={(player) => assignPosition(player, 'cart2', 'driver')}
-            />
-            <CartPositionSelect
-              value={value.cart2.rider}
-              players={players}
-              position="rider"
-              cartId="cart2"
-              isPlayerAssigned={isPlayerAssigned}
-              disabled={disabled}
-              onChange={(player) => assignPosition(player, 'cart2', 'rider')}
-            />
-          </CardContent>
-        </Card>
+      {/* Cart 2 */}
+      <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-200">
+        <h4 className="text-base font-semibold text-neutral-900 text-left mb-4">Cart 2</h4>
+        <div className="space-y-4">
+          <CartPositionSelect
+            value={value.cart2.driver}
+            players={players}
+            position="driver"
+            cartId="cart2"
+            isPlayerAssigned={isPlayerAssigned}
+            disabled={disabled}
+            onChange={(player) => assignPosition(player, 'cart2', 'driver')}
+          />
+          <CartPositionSelect
+            value={value.cart2.rider}
+            players={players}
+            position="rider"
+            cartId="cart2"
+            isPlayerAssigned={isPlayerAssigned}
+            disabled={disabled}
+            onChange={(player) => assignPosition(player, 'cart2', 'rider')}
+          />
+        </div>
       </div>
     </div>
   )

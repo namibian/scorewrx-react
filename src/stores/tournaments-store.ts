@@ -112,10 +112,21 @@ interface TournamentsState {
   syncVerifierToScorerScores: (tournamentId: string, groupId: string, hole: number, scorerScores: any) => Promise<void>
 }
 
+// Helper function to remove undefined values from an object (Firebase rejects undefined)
+const removeUndefinedValues = <T extends Record<string, any>>(obj: T): T => {
+  const result = {} as T
+  for (const key in obj) {
+    if (obj[key] !== undefined) {
+      result[key] = obj[key]
+    }
+  }
+  return result
+}
+
 // Helper function to normalize strokeHoles data structure
-const normalizeStrokeHoles = (strokeHoles: any, playerId = 'unknown'): StrokeHoles | null => {
+const normalizeStrokeHoles = (strokeHoles: any, _playerId = 'unknown'): StrokeHoles | null => {
   if (!strokeHoles) {
-    console.warn(`[normalizeStrokeHoles] No strokeHoles data for player ${playerId}`)
+    // strokeHoles may not exist yet (before game setup) - this is expected
     return null
   }
 
@@ -1060,20 +1071,34 @@ export const useTournamentsStore = create<TournamentsState>((set, get) => ({
         verificationStatus: group.verificationStatus || Array(18).fill(null),
         lastUpdated: new Date(),
         gameSettings: group.gameSettings || null,
-        players: group.players.map((p): Player => ({
-          ...p,
-          handicapIndex: p.handicapIndex || 0,
-          tournamentHandicap: parseInt(String(p.tournamentHandicap || 0)),
-          skinsPool: p.skinsPool || 'None',
-          cart: (p.cart === '1' || p.cart === '2') ? p.cart : undefined,
-          position: (p.position === 'driver' || p.position === 'rider') ? p.position : undefined,
-          score: Array.isArray(p.score) ? p.score : Array(18).fill(null),
-          dots: Array.isArray(p.dots) ? p.dots : Array(18).fill(0),
-          dnf: Array.isArray(p.dnf) ? p.dnf : Array(18).fill(false),
-          greenies: Array.isArray(p.greenies) ? p.greenies : [],
-          sandies: Array.isArray(p.sandies) ? p.sandies : [],
-          strokeHoles: normalizeStrokeHoles(p.strokeHoles, p.id) || undefined
-        })),
+        players: group.players.map((p): Player => {
+          const normalizedStrokeHoles = normalizeStrokeHoles(p.strokeHoles, p.id)
+          // Build player object explicitly to avoid undefined values (Firebase rejects them)
+          const player: Record<string, any> = {
+            id: p.id,
+            firstName: p.firstName || '',
+            lastName: p.lastName || '',
+            handicapIndex: p.handicapIndex || 0,
+            tournamentHandicap: parseInt(String(p.tournamentHandicap || 0)),
+            skinsPool: p.skinsPool || 'None',
+            score: Array.isArray(p.score) ? p.score : Array(18).fill(null),
+            dots: Array.isArray(p.dots) ? p.dots : Array(18).fill(0),
+            dnf: Array.isArray(p.dnf) ? p.dnf : Array(18).fill(false),
+            greenies: Array.isArray(p.greenies) ? p.greenies : [],
+            sandies: Array.isArray(p.sandies) ? p.sandies : [],
+          }
+          // Only add optional fields if they have valid values
+          if (p.affiliation) player.affiliation = p.affiliation
+          if (p.email) player.email = p.email
+          if (p.cart === '1' || p.cart === '2') player.cart = p.cart
+          if (p.position === 'driver' || p.position === 'rider') player.position = p.position
+          if (normalizedStrokeHoles) player.strokeHoles = normalizedStrokeHoles
+          if (p.verifierScore !== undefined) player.verifierScore = p.verifierScore
+          if (p.verifierDots !== undefined) player.verifierDots = p.verifierDots
+          if (p.verifierDnf !== undefined) player.verifierDnf = p.verifierDnf
+          
+          return player as Player
+        }),
         par3ScoreLog: group.par3ScoreLog || [],
         eventLog: group.eventLog || []
       }

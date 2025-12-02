@@ -92,7 +92,8 @@ export default function ScorecardPage() {
     }
 
     loadData()
-  }, [tournamentId, groupId, tournamentsStore, coursesStore])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tournamentId, groupId])
 
   // Real-time updates from Firestore
   useEffect(() => {
