@@ -48,6 +48,10 @@ describe('ScoreEntryDialog Logic', () => {
   const mockCourse: Course = {
     id: 'course1',
     name: 'Test Course',
+    affiliation: 'test-affiliation',
+    createdBy: 'test-user',
+    createdAt: new Date(),
+    lastUpdated: new Date(),
     teeboxes: [
       {
         name: 'Blue',

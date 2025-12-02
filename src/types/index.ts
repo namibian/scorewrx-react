@@ -289,7 +289,9 @@ export interface Course {
   id: string
   name: string
   affiliation: string
-  location?: string
+  address?: string
+  telephone?: string
+  location?: string // Alias for address (backwards compatibility)
   description?: string
   createdBy: string
   createdAt: Date
