@@ -180,15 +180,11 @@ export default function TournamentsPage() {
     }
   }
 
-  const handleScoringPage = (tournament: Tournament) => {
-    // The PlayerLandingPage (scoring page) is not yet implemented in React
-    // In Vue, this navigates to /tournament/:id/landing where players select themselves
-    // For now, show a toast with the tournament code that players can use
-    toast.info(`Scoring Page not yet implemented`, {
-      description: `Players can use code "${tournament.code}" to access scoring on mobile devices.`
-    })
-    // TODO: Implement PlayerLandingPage and add route /tournament/:tournamentId/landing
-    // navigate(`/tournament/${tournament.id}/landing`)
+  const handleScoringPage = (_tournament: Tournament) => {
+    // Navigate to the Tournament Code Entry page (same as mobile flow)
+    // This allows debugging the scoring flow from the admin dashboard
+    // Users should enable mobile emulation in browser dev tools to test
+    navigate('/scoring')
   }
 
   const handleFinalize = (tournament: Tournament) => {
@@ -439,7 +435,9 @@ export default function TournamentsPage() {
 
         {/* Upcoming Tournaments */}
         <div>
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">Upcoming Tournaments</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-slate-900">Upcoming Tournaments</h2>
+          </div>
           {upcomingTournaments.length === 0 ? (
             <div className="bg-white rounded-lg p-8 text-center text-slate-500 flex items-center justify-center space-x-2">
               <Trophy className="w-6 h-6" />

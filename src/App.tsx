@@ -12,6 +12,11 @@ import PlayersPage from './pages/players'
 import GameSetupPage from './pages/game-setup'
 import ScorecardPage from './pages/scorecard'
 import TournamentRegistrationPage from './pages/tournament-registration'
+
+// Scoring flow pages (public - no auth required)
+import TournamentCodeEntryPage from './pages/scoring/tournament-code-entry'
+import PlayerLandingPage from './pages/scoring/player-landing'
+
 import './App.css'
 
 function App() {
@@ -34,6 +39,28 @@ function App() {
         
         {/* Public Tournament Registration Route - No auth required */}
         <Route path="/registration/:code" element={<TournamentRegistrationPage />} />
+
+        {/* Public Scoring Routes - Mobile Only, No Auth Required */}
+        <Route path="/scoring" element={
+          <DeviceGuard requireMobile={true}>
+            <TournamentCodeEntryPage />
+          </DeviceGuard>
+        } />
+        <Route path="/scoring/select" element={
+          <DeviceGuard requireMobile={true}>
+            <PlayerLandingPage />
+          </DeviceGuard>
+        } />
+        <Route path="/scoring/setup/:tournamentId/:playerId/:groupId" element={
+          <DeviceGuard requireMobile={true}>
+            <GameSetupPage />
+          </DeviceGuard>
+        } />
+        <Route path="/scoring/scorecard/:tournamentId/:playerId/:groupId" element={
+          <DeviceGuard requireMobile={true}>
+            <ScorecardPage />
+          </DeviceGuard>
+        } />
 
         {/* Protected Admin Routes - Desktop Layout */}
         <Route path="/dashboard" element={
@@ -73,7 +100,7 @@ function App() {
           </AuthGuard>
         } />
 
-        {/* Protected Mobile Scoring Routes - Scoring Layout */}
+        {/* Legacy Protected Mobile Scoring Routes - Keep for backward compatibility */}
         <Route path="/tournament/:tournamentId/group/:groupId/player/:playerId/setup" element={
           <AuthGuard>
             <DeviceGuard requireMobile={true}>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useTournamentsStore } from '@/stores/tournaments-store'
 import { useCoursesStore } from '@/stores/courses-store'
 import {
@@ -40,6 +40,7 @@ interface CartPositions {
 
 export default function GameSetupPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { tournamentId, groupId, playerId } = useParams<{
     tournamentId: string
     groupId: string
@@ -48,6 +49,9 @@ export default function GameSetupPage() {
 
   const tournamentsStore = useTournamentsStore()
   const coursesStore = useCoursesStore()
+  
+  // Preserve debug mode through navigation
+  const debugParam = searchParams.get('debug') === 'true' ? '?debug=true' : ''
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -270,7 +274,13 @@ export default function GameSetupPage() {
         scorerId: playerId,
       })
 
-      navigate(`/scorecard/${tournamentId}/${playerId}/${groupId}`)
+      // Check if we're in the /scoring flow or the legacy flow
+      const isInScoringFlow = window.location.pathname.startsWith('/scoring/')
+      if (isInScoringFlow) {
+        navigate(`/scoring/scorecard/${tournamentId}/${playerId}/${groupId}${debugParam}`)
+      } else {
+        navigate(`/tournament/${tournamentId}/group/${groupId}/player/${playerId}/scorecard`)
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to save game setup')
     } finally {
