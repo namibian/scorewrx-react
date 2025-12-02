@@ -2,6 +2,7 @@ import { ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
+import { Logo } from '@/components/common/logo'
 import {
   LayoutDashboard,
   Trophy,
@@ -80,7 +81,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <div className="container flex h-16 items-center px-4">
           {/* Logo/Brand */}
           <Link to="/dashboard" className="flex items-center space-x-2 mr-6">
-            <Trophy className="h-6 w-6 text-primary" />
+            <Logo size={28} />
             <span className="text-xl font-bold">ScoreWrx</span>
           </Link>
 

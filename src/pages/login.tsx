@@ -53,8 +53,8 @@ export default function LoginPage() {
             <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000" />
           </div>
 
-          <div className="relative z-10">
-            <div className="mb-8">
+          <div className="relative z-10 text-center">
+            <div className="mb-8 flex justify-center">
               <Logo size={100} className="drop-shadow-xl" />
             </div>
             
@@ -67,7 +67,7 @@ export default function LoginPage() {
               Your ultimate golf management and scoring platform
             </p>
 
-            <div className="space-y-6">
+            <div className="space-y-6 inline-block text-left">
               {features.map((feature, idx) => (
                 <div key={idx} className="flex items-center space-x-3">
                   <feature.icon className="w-6 h-6 text-white" />
