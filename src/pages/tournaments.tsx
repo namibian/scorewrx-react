@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTournamentsStore } from '@/stores/tournaments-store'
 import { useCoursesStore } from '@/stores/courses-store'
 import { useAuthStore } from '@/stores/auth-store'
@@ -13,6 +14,7 @@ import { exportTournamentToCSV, canExportTournament } from '@/lib/export-utils'
 import { toast } from 'sonner'
 
 export default function TournamentsPage() {
+  const navigate = useNavigate()
   const { userProfile } = useAuthStore()
   const { 
     tournaments, 
@@ -37,6 +39,12 @@ export default function TournamentsPage() {
     tournament: null 
   })
   const [deleteAllConfirm, setDeleteAllConfirm] = useState(false)
+  const [finalizeConfirm, setFinalizeConfirm] = useState<{ open: boolean; tournament: Tournament | null }>({
+    open: false,
+    tournament: null
+  })
+  // Track which tournaments have groups loaded (for menu item enablement)
+  const [tournamentGroupsStatus, setTournamentGroupsStatus] = useState<Record<string, boolean>>({})
 
   // Fetch data when userProfile becomes available (has affiliation)
   useEffect(() => {
@@ -45,6 +53,43 @@ export default function TournamentsPage() {
       fetchCourses()
     }
   }, [userProfile?.affiliation, fetchTournaments, fetchCourses])
+
+  // Fetch groups status for all tournaments to enable/disable menu items
+  useEffect(() => {
+    const fetchGroupsStatus = async () => {
+      const statusUpdates: Record<string, boolean> = {}
+      
+      for (const tournament of tournaments) {
+        // Skip if we already know the status (check current state, not the closure)
+        if (tournament.groups !== undefined) {
+          // Tournament already has groups loaded
+          statusUpdates[tournament.id] = tournament.groups && tournament.groups.length > 0
+          continue
+        }
+        
+        try {
+          // Fetch full tournament data with groups
+          const tournamentData = await getTournament(tournament.id)
+          statusUpdates[tournament.id] = tournamentData?.groups && tournamentData.groups.length > 0
+        } catch (error) {
+          console.error(`Error fetching groups for tournament ${tournament.id}:`, error)
+          statusUpdates[tournament.id] = false
+        }
+      }
+      
+      // Batch update all status changes
+      if (Object.keys(statusUpdates).length > 0) {
+        setTournamentGroupsStatus(prev => ({
+          ...prev,
+          ...statusUpdates
+        }))
+      }
+    }
+
+    if (tournaments.length > 0) {
+      fetchGroupsStatus()
+    }
+  }, [tournaments, getTournament])
 
   // Automatically archive past active tournaments
   useEffect(() => {
@@ -104,9 +149,87 @@ export default function TournamentsPage() {
     setShowGroupManager(true)
   }
 
+  const handleGroupManagerClose = async (open: boolean) => {
+    setShowGroupManager(open)
+    
+    // Refresh groups status when group manager closes
+    if (!open && selectedTournamentId) {
+      try {
+        const tournamentData = await getTournament(selectedTournamentId)
+        setTournamentGroupsStatus(prev => ({
+          ...prev,
+          [selectedTournamentId]: tournamentData?.groups && tournamentData.groups.length > 0
+        }))
+      } catch (error) {
+        console.error('Error refreshing groups status:', error)
+      }
+    }
+  }
+
   const handleShowCode = (tournament: Tournament) => {
-    console.log('Show code for tournament:', tournament)
-    // TODO: Show tournament code dialog
+    // TODO: Implement show code dialog with QR code and copy functionality
+    if (tournament.code) {
+      navigator.clipboard.writeText(tournament.code)
+      toast.success(`Tournament code "${tournament.code}" copied to clipboard!`)
+    } else {
+      toast.error('Tournament does not have a code yet')
+    }
+  }
+
+  const handleScoringPage = (tournament: Tournament) => {
+    // The PlayerLandingPage (scoring page) is not yet implemented in React
+    // In Vue, this navigates to /tournament/:id/landing where players select themselves
+    // For now, show a toast with the tournament code that players can use
+    toast.info(`Scoring Page not yet implemented`, {
+      description: `Players can use code "${tournament.code}" to access scoring on mobile devices.`
+    })
+    // TODO: Implement PlayerLandingPage and add route /tournament/:tournamentId/landing
+    // navigate(`/tournament/${tournament.id}/landing`)
+  }
+
+  const handleFinalize = (tournament: Tournament) => {
+    setFinalizeConfirm({ open: true, tournament })
+  }
+
+  const confirmFinalize = async () => {
+    if (!finalizeConfirm.tournament) return
+    
+    try {
+      // Archive the tournament
+      await updateTournamentState(finalizeConfirm.tournament.id, 'Archived')
+      toast.success(`Tournament "${finalizeConfirm.tournament.name}" has been finalized and archived!`)
+    } catch (err) {
+      console.error('Failed to finalize tournament:', err)
+      toast.error('Failed to finalize tournament')
+    }
+  }
+
+  const handleOpenRegistration = async (tournament: Tournament) => {
+    try {
+      await updateTournamentState(tournament.id, 'Open')
+      toast.success('Tournament opened for registration')
+    } catch (err) {
+      console.error('Failed to open registration:', err)
+      toast.error('Failed to open registration')
+    }
+  }
+
+  const handleCopyLink = (tournament: Tournament) => {
+    const baseUrl = window.location.origin
+    const link = `${baseUrl}/registration/${tournament.code}`
+    navigator.clipboard.writeText(link).then(() => {
+      toast.success('Registration link copied to clipboard!', {
+        description: link
+      })
+    }).catch(() => {
+      toast.error('Failed to copy link')
+    })
+  }
+
+  const handleViewRegistrations = (tournament: Tournament) => {
+    // TODO: Implement registration dashboard dialog
+    console.log('View registrations for tournament:', tournament)
+    toast.info('Registration dashboard coming soon')
   }
 
   const handleExport = async (tournament: Tournament) => {
@@ -248,7 +371,7 @@ export default function TournamentsPage() {
       
       <GroupManagerDialog
         open={showGroupManager}
-        onOpenChange={setShowGroupManager}
+        onOpenChange={handleGroupManagerClose}
         tournamentId={selectedTournamentId}
       />
       
@@ -274,6 +397,17 @@ export default function TournamentsPage() {
         confirmText="Delete All"
         cancelText="Cancel"
         variant="destructive"
+      />
+
+      {/* Finalize Tournament Confirmation */}
+      <ConfirmDialog
+        open={finalizeConfirm.open}
+        onOpenChange={(open) => setFinalizeConfirm({ open, tournament: null })}
+        title="Finalize Tournament"
+        description={`Are you sure you want to finalize "${finalizeConfirm.tournament?.name}"? This will archive the tournament and cannot be undone.`}
+        onConfirm={confirmFinalize}
+        confirmText="Finalize"
+        cancelText="Cancel"
       />
       
       <div className="space-y-8">
@@ -313,6 +447,11 @@ export default function TournamentsPage() {
                   onShowCode={handleShowCode}
                   onExport={handleExport}
                   onDelete={handleDelete}
+                  onScoringPage={handleScoringPage}
+                  onFinalize={handleFinalize}
+                  onOpenRegistration={handleOpenRegistration}
+                  onCopyLink={handleCopyLink}
+                  onViewRegistrations={handleViewRegistrations}
                 />
               ))}
             </div>
@@ -351,6 +490,11 @@ export default function TournamentsPage() {
                     onShowCode={handleShowCode}
                     onExport={handleExport}
                     onDelete={handleDelete}
+                    onScoringPage={handleScoringPage}
+                    onFinalize={handleFinalize}
+                    onOpenRegistration={handleOpenRegistration}
+                    onCopyLink={handleCopyLink}
+                    onViewRegistrations={handleViewRegistrations}
                   />
                 </div>
               ))}

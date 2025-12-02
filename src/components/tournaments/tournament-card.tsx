@@ -19,7 +19,12 @@ import {
   Trash2,
   QrCode,
   FileDown,
-  UsersRound
+  UsersRound,
+  Target,
+  CheckCircle,
+  Send,
+  Link,
+  ClipboardList
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { canExportTournament } from '@/lib/export-utils'
@@ -31,6 +36,11 @@ interface TournamentCardProps {
   onShowCode: (tournament: Tournament) => void
   onExport: (tournament: Tournament) => void
   onDelete: (tournament: Tournament) => void
+  onScoringPage?: (tournament: Tournament) => void
+  onFinalize?: (tournament: Tournament) => void
+  onOpenRegistration?: (tournament: Tournament) => void
+  onCopyLink?: (tournament: Tournament) => void
+  onViewRegistrations?: (tournament: Tournament) => void
 }
 
 const getStateColor = (state: string) => {
@@ -54,11 +64,20 @@ export function TournamentCard({
   onManageGroups,
   onShowCode,
   onExport,
-  onDelete
+  onDelete,
+  onScoringPage,
+  onFinalize,
+  onOpenRegistration,
+  onCopyLink,
+  onViewRegistrations
 }: TournamentCardProps) {
   const hasGroups = tournament.groups && tournament.groups.length > 0
   const exportEnabled = canExportTournament(tournament)
   const isPastTournament = tournament.state === 'Archived'
+  const isActive = tournament.state === 'Active'
+  const isCreated = tournament.state === 'Created'
+  const isOpen = tournament.state === 'Open'
+  const hasOnlineRegistration = tournament.useOnlineRegistration
 
   const registrationStats = tournament.registeredPlayers 
     ? {
@@ -99,13 +118,21 @@ export function TournamentCard({
                 
                 <DropdownMenuItem 
                   onClick={() => onManageGroups(tournament)}
-                  disabled={tournament.useOnlineRegistration && tournament.state !== 'Active'}
+                  disabled={hasOnlineRegistration && !isActive}
                 >
                   <UsersRound className="w-4 h-4 mr-2" />
                   Manage Groups
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
+                
+                <DropdownMenuItem 
+                  onClick={() => onScoringPage?.(tournament)}
+                  disabled={!hasGroups}
+                >
+                  <Target className="w-4 h-4 mr-2" />
+                  Scoring Page
+                </DropdownMenuItem>
                 
                 <DropdownMenuItem 
                   onClick={() => onShowCode(tournament)}
@@ -122,6 +149,16 @@ export function TournamentCard({
                   <FileDown className="w-4 h-4 mr-2" />
                   Export Data
                 </DropdownMenuItem>
+                
+                {isActive && (
+                  <DropdownMenuItem 
+                    onClick={() => onFinalize?.(tournament)}
+                    className="text-green-600 focus:text-green-600 focus:bg-green-50"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Finalize Tournament
+                  </DropdownMenuItem>
+                )}
                 
                 <DropdownMenuSeparator />
                 
@@ -200,12 +237,49 @@ export function TournamentCard({
               variant="ghost" 
               size="sm"
               onClick={() => onManageGroups(tournament)}
-              disabled={tournament.useOnlineRegistration && tournament.state !== 'Active'}
+              disabled={hasOnlineRegistration && !isActive}
               className="flex-1"
             >
               <Users className="w-4 h-4 mr-1" />
               Groups
             </Button>
+            
+            {/* Registration Management Buttons - only show if online registration is enabled */}
+            {hasOnlineRegistration && isCreated && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => onOpenRegistration?.(tournament)}
+                className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+              >
+                <Send className="w-4 h-4 mr-1" />
+                Open Registration
+              </Button>
+            )}
+            
+            {hasOnlineRegistration && isOpen && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => onCopyLink?.(tournament)}
+                className="flex-1"
+              >
+                <Link className="w-4 h-4 mr-1" />
+                Copy Link
+              </Button>
+            )}
+            
+            {hasOnlineRegistration && (isOpen || isActive) && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => onViewRegistrations?.(tournament)}
+                className="flex-1"
+              >
+                <ClipboardList className="w-4 h-4 mr-1" />
+                Registrations
+              </Button>
+            )}
             
             {hasGroups && (
               <Button 
